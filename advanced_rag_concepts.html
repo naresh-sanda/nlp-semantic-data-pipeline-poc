@@ -838,9 +838,10 @@ top_3_rules = [doc <span class="kw">for</span> doc, score <span class="kw">in</s
       document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
       
       // Find button based on matching tabId
-      const targetBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => 
-        btn.getAttribute('onclick').includes(tabId)
-      );
+      const targetBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => {
+        const onc = btn.getAttribute('onclick');
+        return onc && onc.includes(tabId);
+      });
       if (targetBtn) targetBtn.classList.add('active');
       
       const targetContent = document.getElementById(tabId);
