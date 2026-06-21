@@ -92,13 +92,13 @@
     /* Portal Grid */
     .portal-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 2rem;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.5rem;
     }
 
-    @media (max-width: 1024px) {
+    @media (max-width: 1200px) {
       .portal-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, 1fr);
       }
     }
 
@@ -332,6 +332,23 @@
         </div>
         <div class="portal-card-footer">
           Open Distance Metrics Guide &rarr;
+        </div>
+      </a>
+
+      <!-- Link to advanced_rag_concepts.html -->
+      <a href="advanced_rag_concepts.html" class="portal-card">
+        <div>
+          <div class="portal-card-header">
+            <span class="portal-card-icon">🔬</span>
+            <span class="tag" style="background: rgba(255, 0, 127, 0.15); color: var(--accent);">Advanced RAG</span>
+          </div>
+          <div class="portal-card-title">Advanced RAG Concepts</div>
+          <div class="portal-card-desc">
+            Explore state-of-the-art upgrades for semantic pipelines: Reranking, Query Expansion, Multi-Hop Retrieval, Agentic self-correcting loops, and RAGAS evaluation metrics.
+          </div>
+        </div>
+        <div class="portal-card-footer">
+          Open Advanced RAG Guide &rarr;
         </div>
       </a>
 

@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Advanced RAG Concepts — NLP Pipeline</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0f111a;
+      --bg-card: rgba(30, 34, 51, 0.6);
+      --bg-nav: #141824;
+      --primary: #8257e5;
+      --primary-glow: rgba(130, 87, 229, 0.4);
+      --secondary: #00f2fe;
+      --secondary-glow: rgba(0, 242, 254, 0.3);
+      --accent: #ff007f;
+      --text-main: #f8f8f2;
+      --text-muted: #8b949e;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --green: #50fa7b;
+      --orange: #ffb86c;
+      --red: #ff5555;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.7;
+    }
+
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-dark); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+    /* ─── Header ─── */
+    header {
+      background: linear-gradient(135deg, #141824 0%, #1e2233 100%);
+      border-bottom: 1px solid var(--border-color);
+      padding: 2rem 3rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 50%, var(--primary-glow) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 50%, var(--secondary-glow) 0%, transparent 50%);
+      opacity: 0.3;
+      animation: headerPulse 8s ease-in-out infinite alternate;
+    }
+    @keyframes headerPulse {
+      0% { transform: scale(1) rotate(0deg); }
+      100% { transform: scale(1.1) rotate(3deg); }
+    }
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      position: relative;
+      z-index: 1;
+      background: linear-gradient(135deg, var(--secondary), var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    header p {
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      position: relative;
+      z-index: 1;
+      font-size: 1.05rem;
+    }
+
+    /* ─── Navigation ─── */
+    .nav-bar {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      padding: 1rem 2rem;
+      background: var(--bg-nav);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-bar a {
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.3s;
+      border: 1px solid transparent;
+    }
+    .nav-bar a:hover {
+      color: var(--secondary);
+      background: rgba(0, 242, 254, 0.08);
+      border-color: rgba(0, 242, 254, 0.2);
+    }
+    .nav-bar a.doc-link {
+      color: var(--orange);
+      border: 1px solid rgba(255, 184, 108, 0.3);
+    }
+    .nav-bar a.doc-link:hover {
+      background: rgba(255, 184, 108, 0.1);
+      color: #fff;
+    }
+
+    /* ─── Main Layout ─── */
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2.5rem;
+    }
+
+    .section {
+      margin-bottom: 3.5rem;
+    }
+
+    h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--primary);
+      display: inline-block;
+    }
+
+    p { margin-bottom: 1rem; color: var(--text-muted); }
+    strong { color: var(--text-main); }
+
+    /* ─── Roadmap/Timeline Diagram ─── */
+    .pipeline-upgrade-map {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 2rem;
+      margin: 1.5rem 0 3rem 0;
+      position: relative;
+    }
+    .pipeline-upgrade-map .title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--secondary);
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .map-flow {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: relative;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+    .map-step {
+      background: rgba(15, 17, 26, 0.8);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1rem 1.2rem;
+      flex: 1;
+      min-width: 180px;
+      text-align: center;
+      position: relative;
+      transition: all 0.3s;
+    }
+    .map-step:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+    .map-step.upgrade-node {
+      border: 1.5px dashed var(--orange);
+      box-shadow: 0 0 15px rgba(255, 184, 108, 0.1);
+    }
+    .map-step.upgrade-node-agent {
+      border: 1.5px dashed var(--accent);
+      box-shadow: 0 0 15px rgba(255, 0, 127, 0.1);
+    }
+    .map-step h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      margin-bottom: 0.3rem;
+      color: var(--text-main);
+    }
+    .map-step.upgrade-node h4 { color: var(--orange); }
+    .map-step.upgrade-node-agent h4 { color: var(--accent); }
+    .map-step p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 0;
+    }
+    .map-arrow {
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    /* ─── Tab System ─── */
+    .tab-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      overflow: hidden;
+      margin-top: 1.5rem;
+    }
+    .tab-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      background: var(--bg-nav);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .tab-btn {
+      flex: 1;
+      min-width: 140px;
+      padding: 1.2rem;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      outline: none;
+      text-align: center;
+      border-bottom: 3px solid transparent;
+    }
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255,255,255,0.02);
+    }
+    .tab-btn.active {
+      color: var(--secondary);
+      border-bottom-color: var(--secondary);
+      background: rgba(0, 242, 254, 0.04);
+    }
+    .tab-content {
+      display: none;
+      padding: 2.5rem;
+    }
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.4s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* ─── Grid layouts inside tabs ─── */
+    .tab-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 2.5rem;
+    }
+    @media (max-width: 900px) {
+      .tab-grid { grid-template-columns: 1fr; }
+    }
+
+    .concept-explanation h3 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--secondary);
+      margin-bottom: 0.8rem;
+    }
+    .concept-explanation .tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 0.2rem 0.6rem;
+      border-radius: 4px;
+      margin-bottom: 1.2rem;
+    }
+    .concept-explanation .tag.expansion { background: rgba(0, 242, 254, 0.15); color: var(--secondary); }
+    .concept-explanation .tag.rerank { background: rgba(80, 250, 123, 0.15); color: var(--green); }
+    .concept-explanation .tag.multihop { background: rgba(255, 184, 108, 0.15); color: var(--orange); }
+    .concept-explanation .tag.agentic { background: rgba(255, 0, 127, 0.15); color: var(--accent); }
+    .concept-explanation .tag.evaluation { background: rgba(130, 87, 229, 0.15); color: #bd93f9; }
+
+    .concept-explanation h5 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin: 1.5rem 0 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .concept-explanation ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+    .concept-explanation li {
+      position: relative;
+      padding-left: 1.2rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    .concept-explanation li::before {
+      content: '➔';
+      position: absolute;
+      left: 0;
+      color: var(--primary);
+    }
+
+    /* Code Blocks */
+    pre {
+      background: #1a1e2e;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.2rem 1.5rem;
+      overflow-x: auto;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      position: relative;
+      max-height: 380px;
+    }
+    pre .lang {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.8rem;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.05);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+    }
+    .kw { color: #ff79c6; }
+    .fn { color: #50fa7b; }
+    .str { color: #f1fa8c; }
+    .num { color: #bd93f9; }
+    .comment { color: #6272a4; }
+    .typ { color: #8be9fd; }
+
+    /* Interactive Simulation box */
+    .sim-panel {
+      background: rgba(15, 17, 26, 0.9);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+    .sim-header {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.5rem;
+    }
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .control-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+    }
+    .control-label span.value { color: var(--secondary); font-family: 'Fira Code', monospace; }
+    .slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: #2a2f45;
+      outline: none;
+      transition: background 0.3s;
+    }
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      box-shadow: 0 0 10px var(--primary-glow);
+      transition: transform 0.2s;
+    }
+    .slider::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+    .metric-gauge-box {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+      text-align: center;
+    }
+    .gauge {
+      flex: 1;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 0.8rem;
+    }
+    .gauge-num {
+      font-size: 1.5rem;
+      font-weight: 800;
+      font-family: 'Fira Code', monospace;
+      color: var(--green);
+    }
+    .gauge-num.low { color: var(--red); }
+    .gauge-num.medium { color: var(--orange); }
+    .gauge-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-top: 0.2rem; }
+
+    /* Info Analogy Box */
+    .analogy-box {
+      background: rgba(130, 87, 229, 0.05);
+      border-left: 4px solid var(--primary);
+      border-radius: 0 12px 12px 0;
+      padding: 1.2rem;
+      margin-top: 1.5rem;
+    }
+    .analogy-box h4 { font-size: 0.95rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.4rem; }
+    .analogy-box p { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0; }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 2.5rem;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border-color);
+      margin-top: 3rem;
+    }
+    footer a { color: var(--primary); text-decoration: none; }
+    footer a:hover { color: var(--secondary); }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Header ─── -->
+  <header>
+    <h1>🔬 Advanced RAG Architectures &amp; Evolution</h1>
+    <p>Scaling standard semantic pipelines for enterprise-grade querying &amp; self-correction</p>
+    <div class="author-badge" style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-muted); display: flex; gap: 1.5rem; justify-content: center; align-items: center; opacity: 0.85; position: relative; z-index: 2;">
+      <span>👤 <strong>Naresh Sanda</strong> (Technical Architect)</span>
+      <span style="color: rgba(255,255,255,0.15)">|</span>
+      <span>📧 <a href="mailto:nareshkumar.sanda@gmail.com" style="color: var(--secondary); text-decoration: none;">nareshkumar.sanda@gmail.com</a></span>
+    </div>
+  </header>
+
+  <!-- ─── Navigation ─── -->
+  <nav class="nav-bar">
+    <a href="index.html" class="doc-link">🏠 Portal Home</a>
+    <a href="execution_flow.html" class="doc-link">📄 Pipeline Simulator</a>
+    <a href="rag_deep_dive.html" class="doc-link">🔬 RAG Deep Dive</a>
+    <a href="vector_distance_guide.html" class="doc-link">📐 Vector Distance Guide</a>
+  </nav>
+
+  <main>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- Section 1: Concept Roadmap                              -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="section">
+      <h2>🗺️ Advanced RAG Pipeline Upgrades</h2>
+      <p>
+        In a standard (Naive) RAG pipeline, the system takes the user query, embeds it, retrieves matching documents, and compiles the answer in one single straight line. While this works for simple queries, it fails in enterprise schemas containing complex tables, fuzzy concepts, and high ambiguity.
+      </p>
+      <p>
+        The diagram below demonstrates how the <strong>five advanced techniques</strong> upgrade the standard query flow to ensure accurate SQL compiler outputs:
+      </p>
+
+      <div class="pipeline-upgrade-map">
+        <div class="title">Mapping Upgrades to the Query Execution Flow</div>
+        <div class="map-flow">
+          <div class="map-step">
+            <h4>1. User Query</h4>
+            <p>"Show top growth trend"</p>
+          </div>
+          <div class="map-arrow">➔</div>
+          <div class="map-step upgrade-node">
+            <h4>2. Query Expansion</h4>
+            <p>Generate synonyms / sub-queries (Pre-Retrieval)</p>
+          </div>
+          <div class="map-arrow">➔</div>
+          <div class="map-step">
+            <h4>3. Vector Search</h4>
+            <p>Course retrieval in ChromaDB</p>
+          </div>
+          <div class="map-arrow">➔</div>
+          <div class="map-step upgrade-node">
+            <h4>4. Reranking</h4>
+            <p>Sort top-K chunks by Cross-Encoder</p>
+          </div>
+          <div class="map-arrow">➔</div>
+          <div class="map-step upgrade-node">
+            <h4>5. Multi-Hop</h4>
+            <p>Resolve linked context in cycles</p>
+          </div>
+          <div class="map-arrow">➔</div>
+          <div class="map-step upgrade-node-agent">
+            <h4>6. Agentic RAG</h4>
+            <p>Tool use, reflection, self-correction loop</p>
+          </div>
+          <div class="map-arrow">➔</div>
+          <div class="map-step">
+            <h4>7. SQL Compiler</h4>
+            <p>Generate &amp; validate ANSI SQL</p>
+          </div>
+        </div>
+        <div style="text-align: center; margin-top: 1.5rem; font-size: 0.8rem; color: var(--orange);">
+          * Upgrades marked with dashed borders introduce active reasoning, filtering, and refinement layers.
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- Section 2: Tab-Based Explorer                           -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="section">
+      <h2>🛠️ Concept Deep Dives</h2>
+      <p>Click on each concept tab below to explore its design logic, Python code snippets, and how it directly fits into our SQL compiler project.</p>
+
+      <div class="tab-container">
+        <!-- Tab buttons -->
+        <div class="tab-buttons">
+          <button class="tab-btn active" onclick="openTab('expansion')">Query Expansion</button>
+          <button class="tab-btn" onclick="openTab('reranking')">Reranking</button>
+          <button class="tab-btn" onclick="openTab('multihop')">Multi-Hop Retrieval</button>
+          <button class="tab-btn" onclick="openTab('agentic')">Agentic RAG</button>
+          <button class="tab-btn" onclick="openTab('evaluation')">RAG Evaluation Metrics</button>
+        </div>
+
+        <!-- Tab contents -->
+        
+        <!-- 1. Query Expansion -->
+        <div id="expansion" class="tab-content active">
+          <div class="tab-grid">
+            <div class="concept-explanation">
+              <span class="tag expansion">Query Expansion</span>
+              <h3>Bypassing Vocabulary Limitations</h3>
+              <p>
+                <strong>The Problem:</strong> Natural language questions are often short and mismatch the exact vocabulary inside business rules or glossary text files. For instance, a user asking for <em>"top customer growth trend"</em> might not get matches for rules containing the terms <em>"net profit"</em> or <em>"cumulative billing increase"</em>.
+              </p>
+              <p>
+                <strong>The Solution:</strong> Query Expansion utilizes a language model to rewrite and broaden the user's prompt. By generating multiple variations, synonyms, or even hypothetical answers (HyDE - Hypothetical Document Embeddings), the retriever searches the vector DB using a combined pool of keywords.
+              </p>
+              
+              <h5>Where it fits in our flow:</h5>
+              <ul>
+                <li>Runs inside the query analyzer module (<strong>nlp_analyzer.py</strong>) as a pre-retrieval layer.</li>
+                <li>Takes the initial query and generates 3 expanded query prompts.</li>
+                <li>Runs parallel embeddings queries on ChromaDB, returning a union of matching rules.</li>
+              </ul>
+            </div>
+            <div>
+              <pre><span class="lang">Python (Query Expansion)</span>
+<span class="kw">def</span> <span class="fn">expand_query</span>(user_query: <span class="typ">str</span>) -> <span class="typ">list</span>[<span class="typ">str</span>]:
+    <span class="comment"># Prompt template to expand intent</span>
+    prompt = <span class="str">f"""Rewrite this query into 3 distinct
+variants focusing on different synonyms:
+Question: {user_query}"""</span>
+    
+    <span class="comment"># LLM call returns variations</span>
+    variants = llm.generate(prompt) 
+    
+    <span class="comment"># Always keep the original query</span>
+    <span class="kw">return</span> [user_query] + variants
+
+<span class="comment"># Usage in retrieval</span>
+expanded_queries = expand_query(<span class="str">"growth trend"</span>)
+all_docs = []
+<span class="kw">for</span> q <span class="kw">in</span> expanded_queries:
+    all_docs.extend(chroma_search(q))
+<span class="comment"># Remove duplicates afterward</span></pre>
+              
+              <div class="analogy-box">
+                <h4>📚 Library Analogy</h4>
+                <p>Instead of asking the librarian for "Growth rules" (which finds nothing if the catalog uses "cumulative revenue increases"), you ask for "growth, sales trends, profit expansions, and billing spikes" all at once.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Reranking -->
+        <div id="reranking" class="tab-content">
+          <div class="tab-grid">
+            <div class="concept-explanation">
+              <span class="tag rerank">Reranking</span>
+              <h3>Coarse Search to High-Precision Scoring</h3>
+              <p>
+                <strong>The Problem:</strong> Vector databases use <em>Bi-Encoders</em> (which embed queries and documents independently). This is extremely fast for searching millions of rows, but lacks the ability to capture deep cross-correlations. Often, the absolute best rule isn't in the top 3 spots.
+              </p>
+              <p>
+                <strong>The Solution:</strong> Use a two-stage retrieval pipeline. Stage 1 retrieves a larger pool of documents (e.g., top-K = 20) using standard cosine distance in ChromaDB. Stage 2 runs a heavier <em>Cross-Encoder (Reranker)</em> model to score the relationship between the query and each candidate chunk, placing the most critical rules at position 1.
+              </p>
+
+              <h5>Where it fits in our flow:</h5>
+              <ul>
+                <li>Positioned inside **rag_retriever.py** as a post-retrieval validation layer.</li>
+                <li>Reduces noise in the context builder, preventing context window pollution.</li>
+                <li>Significantly improves LLM comprehension by bringing relevant edge rules to the top.</li>
+              </ul>
+            </div>
+            <div>
+              <pre><span class="lang">Python (Reranking)</span>
+<span class="kw">from</span> sentence_transformers <span class="kw">import</span> CrossEncoder
+
+<span class="comment"># 1. Retrieve a wider set from ChromaDB</span>
+initial_hits = collection.query(
+    query_embeddings=query, n_results=<span class="num">20</span>
+)[<span class="str">'documents'</span>][<span class="num">0</span>]
+
+<span class="comment"># 2. Initialize Cross-Encoder (Reranker)</span>
+rerank_model = CrossEncoder(
+    <span class="str">'cross-encoder/ms-marco-MiniLM-L-6-v2'</span>
+)
+
+<span class="comment"># 3. Predict similarity pairs</span>
+pairs = [(query, doc) <span class="kw">for</span> doc <span class="kw">in</span> initial_hits]
+scores = rerank_model.predict(pairs)
+
+<span class="comment"># 4. Sort and return top 3</span>
+ranked_docs = sorted(
+    zip(initial_hits, scores), 
+    key=<span class="kw">lambda</span> x: x[<span class="num">1</span>], reverse=<span class="kw">True</span>
+)
+top_3_rules = [doc <span class="kw">for</span> doc, score <span class="kw">in</span> ranked_docs[:<span class="num">3</span>]]</pre>
+
+              <div class="analogy-box">
+                <h4>🔍 Spotlight Analogy</h4>
+                <p>The library scanner instantly brings you 20 books that mention "customer sales". You then sit down and read the first chapter of all 20 to pick the absolute top 3 that answer your specific question.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Multi-Hop Retrieval -->
+        <div id="multihop" class="tab-content">
+          <div class="tab-grid">
+            <div class="concept-explanation">
+              <span class="tag multihop">Multi-Hop Retrieval</span>
+              <h3>Solving Logical Chains &amp; Joint Queries</h3>
+              <p>
+                <strong>The Problem:</strong> A single vector search can only match topics that are directly adjacent in semantic space. If a user asks <em>"What is the profit margin of the supplier who ships the most orders?"</em>, a single search cannot fetch the answer. The supplier's identity must be resolved first before their specific rules can be retrieved.
+              </p>
+              <p>
+                <strong>The Solution:</strong> Multi-Hop retrieval runs queries in a structured sequence where the outputs of Hop 1 act as search keys for Hop 2. In SQL compiler terms, we find structural connections dynamically across tables and rules.
+              </p>
+
+              <h5>Where it fits in our flow:</h5>
+              <ul>
+                <li>Runs inside the context builder module (<strong>builder.py</strong>).</li>
+                <li>Hop 1: Query is analyzed to extract primary entity rules (e.g. Supplier orders).</li>
+                <li>Hop 2: Intermediate results (e.g. Supplier ID or name) are injected into the secondary lookup loop to extract relevant metric rules (e.g. margin calculation constraints).</li>
+              </ul>
+            </div>
+            <div>
+              <pre><span class="lang">Python (Multi-Hop Logic)</span>
+<span class="kw">def</span> <span class="fn">multi_hop_retrieve</span>(query: <span class="typ">str</span>):
+    <span class="comment"># Hop 1: Resolve main active entity</span>
+    hop1_context = lookup_engine.search_schema(query)
+    primary_entity = hop1_context.get_top_entity() 
+    <span class="comment"># e.g., "Supplier"</span>
+    
+    <span class="comment"># Hop 2: Resolve sub-metrics for entity</span>
+    hop2_query = <span class="str">f"Margin rules for {primary_entity}"</span>
+    retrieved_rules = retriever.retrieve(hop2_query)
+    
+    <span class="comment"># Compile unified context</span>
+    <span class="kw">return</span> build_context(hop1_context, retrieved_rules)</pre>
+
+              <div class="analogy-box">
+                <h4>🔗 Detective Analogy</h4>
+                <p>To solve a case, you can't just guess. First, you search for the suspect's address (Hop 1). Once you get the address, you look up the blueprints of that specific building (Hop 2).</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Agentic RAG -->
+        <div id="agentic" class="tab-content">
+          <div class="tab-grid">
+            <div class="concept-explanation">
+              <span class="tag agentic">Agentic RAG</span>
+              <h3>Autonomous Reasoning and Self-Correction</h3>
+              <p>
+                <strong>The Problem:</strong> In standard RAG pipelines, data flows in one direction: Query ➔ Context ➔ SQL ➔ Print. If the SQL query fails to execute or a rule mismatch occurs, the pipeline fails silently or returns incorrect details.
+              </p>
+              <p>
+                <strong>The Solution:</strong> Wrap the retrieval and generation phases inside an autonomous reasoning loop (an LLM-based agent). The agent checks if the confidence score meets requirements. If it's too low, the agent uses tools (e.g. searching the glossary, running a SQL validator, asking the user a clarification question) to self-correct and refine until it guarantees accuracy.
+              </p>
+
+              <h5>Where it fits in our flow:</h5>
+              <ul>
+                <li>Replaces the simple static loop in **run_demo.py** with an iterative while-loop.</li>
+                <li>Connects the **ConfidenceScorer** and **ClarificationEngine** back into the retrieval loop.</li>
+                <li>Enables the system to test its own generated SQL queries in SQLite before outputting them.</li>
+              </ul>
+            </div>
+            <div>
+              <pre><span class="lang">Python (Agentic Reasoner)</span>
+<span class="kw">def</span> <span class="fn">run_agentic_rag</span>(query: <span class="typ">str</span>):
+    context = []
+    confidence = <span class="num">0</span>
+    attempts = <span class="num">0</span>
+    
+    <span class="kw">while</span> confidence <span class="kw">and</span> attempts < <span class="num">3</span>:
+        extracted = analyzer.analyze(query)
+        rag_hits = retriever.retrieve(query, context)
+        context = builder.build(extracted, rag_hits)
+        
+        confidence = scorer.calculate_score(context)
+        <span class="kw">if</span> confidence >= <span class="num">70</span>:
+            sql = generator.generate(context)
+            <span class="comment"># Self-Correction: Validate SQL</span>
+            <span class="kw">if</span> db.validate(sql):
+                <span class="kw">return</span> sql
+                
+        <span class="comment"># Agent decides to fetch glossary</span>
+        query = <span class="str">f"Explain glossary terms in query"</span>
+        attempts += <span class="num">1</span></pre>
+
+              <div class="analogy-box">
+                <h4>🤖 Chef Analogy</h4>
+                <p>Instead of blindly following a recipe card and serving a bad dish, you taste the soup as you cook (evaluation), add seasoning if it is bland (re-retrieval), and check if the oven temperature is correct (self-correction).</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. RAG Evaluation Metrics -->
+        <div id="evaluation" class="tab-content">
+          <div class="tab-grid">
+            <div class="concept-explanation">
+              <span class="tag evaluation">Evaluation Metrics</span>
+              <h3>Measuring Quality with RAGAS Framework</h3>
+              <p>
+                <strong>The Problem:</strong> How do you evaluate a RAG pipeline? Unit tests can check if database calls work, but they cannot tell you if the generated SQL is faithful to the text rules or if the retrieved chunks are full of useless noise.
+              </p>
+              <p>
+                <strong>The Solution:</strong> Implement standard metrics inspired by the RAGAS framework:
+              </p>
+              <ul>
+                <li><strong>Faithfulness (0.0 - 1.0):</strong> Is the SQL logic strictly supported by the rules? Checks for hallucinations.</li>
+                <li><strong>Answer Relevance (0.0 - 1.0):</strong> Does the query answer the user's intent?</li>
+                <li><strong>Context Precision (0.0 - 1.0):</strong> Are retrieved chunks highly relevant to the query, or is there filler text?</li>
+                <li><strong>Context Recall (0.0 - 1.0):</strong> Did we retrieve *all* rules required to generate the SQL query?</li>
+              </ul>
+            </div>
+            <div>
+              <div class="sim-panel">
+                <div class="sim-header">🎛️ Interactive Metric Impact Simulator</div>
+                
+                <div class="control-group">
+                  <div class="control-label">
+                    <span>Retrieved Context Quality (Precision)</span>
+                    <span class="value" id="val-precision">80%</span>
+                  </div>
+                  <input type="range" class="slider" id="slider-precision" min="0" max="100" value="80" oninput="updateSimulation()">
+                </div>
+
+                <div class="control-group">
+                  <div class="control-label">
+                    <span>Information Retrieval Coverage (Recall)</span>
+                    <span class="value" id="val-recall">90%</span>
+                  </div>
+                  <input type="range" class="slider" id="slider-recall" min="0" max="100" value="90" oninput="updateSimulation()">
+                </div>
+
+                <div class="control-group">
+                  <div class="control-label">
+                    <span>Generation Hallucination Rate</span>
+                    <span class="value" id="val-hallucination">10%</span>
+                  </div>
+                  <input type="range" class="slider" id="slider-hallucination" min="0" max="100" value="10" oninput="updateSimulation()">
+                </div>
+
+                <div class="metric-gauge-box">
+                  <div class="gauge">
+                    <div class="gauge-num" id="gauge-faith">0.90</div>
+                    <div class="gauge-label">Faithfulness</div>
+                  </div>
+                  <div class="gauge">
+                    <div class="gauge-num" id="gauge-rel">0.85</div>
+                    <div class="gauge-label">Answer Relevance</div>
+                  </div>
+                  <div class="gauge">
+                    <div class="gauge-num" id="gauge-health">Good</div>
+                    <div class="gauge-label">System Health</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p>NLP Semantic Data Pipeline — Advanced RAG Paradigms Guide</p>
+    <p style="margin-top: 0.5rem;">
+      <a href="index.html">Portal Home</a> &nbsp;|&nbsp;
+      <a href="execution_flow.html">Pipeline Simulator</a> &nbsp;|&nbsp;
+      <a href="rag_deep_dive.html">RAG Deep Dive</a> &nbsp;|&nbsp;
+      <a href="vector_distance_guide.html">Vector Distance Guide</a>
+    </p>
+  </footer>
+
+  <script>
+    // Tab switching logic
+    function openTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      
+      // Find button based on matching tabId
+      const targetBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => 
+        btn.getAttribute('onclick').includes(tabId)
+      );
+      if (targetBtn) targetBtn.classList.add('active');
+      
+      const targetContent = document.getElementById(tabId);
+      if (targetContent) targetContent.classList.add('active');
+    }
+
+    // Interactive Metric Simulation
+    function updateSimulation() {
+      const precision = parseFloat(document.getElementById('slider-precision').value);
+      const recall = parseFloat(document.getElementById('slider-recall').value);
+      const hallucination = parseFloat(document.getElementById('slider-hallucination').value);
+
+      document.getElementById('val-precision').innerText = precision + '%';
+      document.getElementById('val-recall').innerText = recall + '%';
+      document.getElementById('val-hallucination').innerText = hallucination + '%';
+
+      // Faithfulness logic: inversely related to hallucination rate and recall stability
+      const faithfulness = Math.max(0, (100 - hallucination) / 100).toFixed(2);
+      // Answer relevance logic: relies on precision and recall
+      const relevance = Math.max(0, (precision * 0.6 + recall * 0.4) / 100).toFixed(2);
+
+      const faithGauge = document.getElementById('gauge-faith');
+      const relGauge = document.getElementById('gauge-rel');
+      const healthGauge = document.getElementById('gauge-health');
+
+      faithGauge.innerText = faithfulness;
+      relGauge.innerText = relevance;
+
+      // Color coding gauges
+      setGaugeColor(faithGauge, parseFloat(faithfulness));
+      setGaugeColor(relGauge, parseFloat(relevance));
+
+      // Calculate health
+      const avg = (parseFloat(faithfulness) + parseFloat(relevance)) / 2;
+      if (avg >= 0.8) {
+        healthGauge.innerText = 'Excellent';
+        healthGauge.className = 'gauge-num';
+      } else if (avg >= 0.6) {
+        healthGauge.innerText = 'Fair';
+        healthGauge.className = 'gauge-num medium';
+      } else {
+        healthGauge.innerText = 'Critical';
+        healthGauge.className = 'gauge-num low';
+      }
+    }
+
+    function setGaugeColor(element, val) {
+      element.className = 'gauge-num';
+      if (val < 0.6) {
+        element.classList.add('low');
+      } else if (val < 0.8) {
+        element.classList.add('medium');
+      }
+    }
+
+    // Init simulation state
+    updateSimulation();
+  </script>
+</body>
+</html>

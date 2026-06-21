@@ -87,6 +87,17 @@ When performing semantic searches in ChromaDB, the system relies on vector dista
 
 ---
 
+## 🔬 Advanced RAG Concepts & Evolution
+As standard (Naive) RAG pipelines scale, they encounter context quality, reasoning, and logical linkage limitations. To address these issues, the pipeline can be upgraded with five advanced architectural patterns:
+
+1. **Reranking**: Standard vector search uses fast bi-encoder cosine similarity. Reranking introduces a heavy cross-encoder model that scores query-document pairs directly, sorting retrieved chunks to ensure the most relevant rules are processed first.
+2. **Query Expansion**: User queries are often short and keyword-poor. Query expansion leverages LLMs to rewrite and broaden queries with synonyms or sub-questions, widening the semantic retrieval net.
+3. **Multi-Hop Retrieval**: Resolves queries requiring logical linkages (e.g. searching Entity A, resolving its name, and using that name to search metrics of Entity B) through sequential, dependent retrieval hops.
+4. **Agentic RAG**: Replaces linear pipelines with an autonomous reasoning loop (LLM agent). The agent uses tools (vector search, SQLite checks, SQL validators) and self-reflects/corrects until it guarantees high-confidence output.
+5. **RAG Evaluation Metrics**: Traditional unit tests cannot measure answer fidelity. The pipeline is measured using RAGAS metrics: Faithfulness (no hallucinations), Answer Relevance (query match), and Context Recall/Precision.
+
+---
+
 ## 📁 Directory Structure
 ```
 ai_dw_nlp_poc/
@@ -104,6 +115,7 @@ ai_dw_nlp_poc/
 ├── index.html               # Main interactive suite portal
 ├── rag_deep_dive.html       # Python vs Java architectural RAG deep dive
 ├── vector_distance_guide.html # Mathematical guide for vector metrics
+├── advanced_rag_concepts.html # Interactive guide detailing advanced RAG upgrades
 │
 ├── requirements.txt         # Project package dependencies
 ├── run_demo.py              # End-to-end flow runner
@@ -171,3 +183,4 @@ The project includes a suite of rich-designed, interactive local HTML dashboards
 * **📄 [execution_flow.html](file:///d:/anvizent-datapipeline-nlp-poc/ai_dw_nlp_poc/execution_flow.html)**: The step-by-step pipeline execution flow simulator.
 * **🔬 [rag_deep_dive.html](file:///d:/anvizent-datapipeline-nlp-poc/ai_dw_nlp_poc/rag_deep_dive.html)**: Comprehensive transition analysis mapping Python structures directly to Java classes.
 * **📐 [vector_distance_guide.html](file:///d:/anvizent-datapipeline-nlp-poc/ai_dw_nlp_poc/vector_distance_guide.html)**: Interactive guide detailing vector math, library analogies, and similarity scoring.
+* **🔬 [advanced_rag_concepts.html](file:///d:/anvizent-datapipeline-nlp-poc/ai_dw_nlp_poc/advanced_rag_concepts.html)**: Interactive guide detailing advanced RAG upgrades (Reranking, Query Expansion, Multi-Hop, Agentic, and RAGAS metrics).
