@@ -1,0 +1,11 @@
+entity_id,source_system,table_name,primary_key
+e1,Salesforce,Account,Id
+e1,Epicor,Erp.Customer,CustNum
+e2,Salesforce,Opportunity,Id
+e2,SYSPRO,SorMaster,SalesOrder
+e1,Priority ERP,CUSTOMERS,CUSTNAME
+e4,Epicor,Erp.Part,PartNum
+e5,Salesforce,Region__c,Id
+e6,SYSPRO,SalSalesperson,Salesperson
+e7,Priority ERP,WAREHOUSES,WARHSNAME
+e8,Epicor,Erp.Vendor,VendorNum

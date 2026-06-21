@@ -1,0 +1,14 @@
+Term: Churn
+Definition: The rate at which customers stop doing business with an entity.
+
+Term: AOV
+Definition: Average Order Value. Total revenue divided by the number of orders.
+
+Term: ERP
+Definition: Enterprise Resource Planning. The source system where transactional data is generated (e.g., Salesforce, Epicor, Priority ERP, SYSPRO).
+
+Term: Dimension
+Definition: A categorical variable used to slice and dice data, such as Region, Customer, or Product.
+
+Term: Metric
+Definition: A quantifiable measure that is used to track and assess the status of a specific business process.

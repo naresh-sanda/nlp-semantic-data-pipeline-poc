@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NLP Semantic Data Pipeline Builder - Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0f111a;
+      --bg-card: rgba(30, 34, 51, 0.6);
+      --bg-nav: #141824;
+      --primary: #8257e5;
+      --primary-glow: rgba(130, 87, 229, 0.4);
+      --secondary: #00f2fe;
+      --secondary-glow: rgba(0, 242, 254, 0.3);
+      --accent: #ff007f;
+      --text-main: #f8f8f2;
+      --text-muted: #8b949e;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --java-orange: #f89820;
+      --python-blue: #306998;
+      --python-yellow: #ffe873;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Scrollbar Styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-dark);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary);
+    }
+
+    header {
+      background-color: var(--bg-nav);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1.5rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      box-shadow: 0 4px 15px var(--primary-glow);
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(to right, #ffffff, #a5b4fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .tab-btn.active {
+      color: var(--secondary);
+      background: rgba(0, 242, 254, 0.08);
+      border-color: rgba(0, 242, 254, 0.2);
+    }
+
+    .container {
+      flex: 1;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.4s ease-out forwards;
+    }
+
+    .tab-content.active {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Cards and Layout */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 968px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.8rem;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--primary);
+    }
+
+    .card.secondary-accent::before {
+      background: var(--secondary);
+    }
+
+    .card.accent-accent::before {
+      background: var(--accent);
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.75rem;
+    }
+
+    /* Pipeline Flow Styles */
+    .flow-steps {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      position: relative;
+      padding-left: 2rem;
+    }
+
+    .flow-steps::before {
+      content: '';
+      position: absolute;
+      left: 7px;
+      top: 10px;
+      bottom: 10px;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--primary), var(--secondary));
+    }
+
+    .flow-step-node {
+      position: relative;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 0.8rem 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .flow-step-node:hover {
+      transform: translateX(5px);
+      border-color: rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .flow-step-node.active {
+      background: rgba(130, 87, 229, 0.08);
+      border-color: rgba(130, 87, 229, 0.4);
+      box-shadow: 0 0 15px rgba(130, 87, 229, 0.15);
+    }
+
+    .flow-step-node::before {
+      content: '';
+      position: absolute;
+      left: -29px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--bg-dark);
+      border: 3px solid var(--primary);
+      z-index: 2;
+      transition: all 0.2s ease;
+    }
+
+    .flow-step-node.active::before {
+      background: var(--secondary);
+      border-color: var(--primary);
+      box-shadow: 0 0 8px var(--secondary);
+    }
+
+    .step-number {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--secondary);
+      text-transform: uppercase;
+      margin-bottom: 0.25rem;
+    }
+
+    .step-name {
+      font-weight: 600;
+      font-size: 1.05rem;
+    }
+
+    .step-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    /* Simulator Panel */
+    .sim-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+      height: 100%;
+    }
+
+    .q-selector {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .select-input {
+      background: #1e2233;
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.8rem;
+      border-radius: 8px;
+      width: 100%;
+      font-family: inherit;
+      font-size: 0.95rem;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .select-input:focus {
+      border-color: var(--primary);
+    }
+
+    .console {
+      background-color: #0b0d16;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1.2rem;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.82rem;
+      line-height: 1.55;
+      flex: 1;
+      min-height: 480px;
+      overflow-y: auto;
+      color: #a9b1d6;
+      position: relative;
+    }
+
+    .console-header {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.1);
+      padding-bottom: 0.5rem;
+      margin-bottom: 0.8rem;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    .console-accent {
+      color: var(--secondary);
+    }
+
+    .console-keyword {
+      color: #bb9af7;
+    }
+
+    .console-string {
+      color: #9ece6a;
+    }
+
+    .console-comment {
+      color: #565f89;
+      font-style: italic;
+    }
+
+    /* Rosetta Stone Comparison Table */
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.95rem;
+    }
+
+    .compare-table th, .compare-table td {
+      border: 1px solid var(--border-color);
+      padding: 1rem;
+      text-align: left;
+    }
+
+    .compare-table th {
+      background: rgba(255, 255, 255, 0.02);
+      font-weight: 600;
+      color: var(--secondary);
+    }
+
+    .compare-table tr:hover {
+      background: rgba(255, 255, 255, 0.01);
+    }
+
+    .compare-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .compare-badge.java {
+      background: rgba(248, 152, 32, 0.1);
+      color: var(--java-orange);
+      border: 1px solid rgba(248, 152, 32, 0.2);
+    }
+
+    .compare-badge.python {
+      background: rgba(48, 105, 152, 0.1);
+      color: var(--secondary);
+      border: 1px solid rgba(48, 105, 152, 0.2);
+    }
+
+    /* Code Block styling */
+    pre {
+      background: #080a10;
+      padding: 1rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.8rem;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .code-comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .code-comparison {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .code-block-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #141824;
+      border: 1px solid var(--border-color);
+      border-bottom: none;
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem;
+      border-top-left-radius: 6px;
+      border-top-right-radius: 6px;
+    }
+
+    .code-block-header span {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    /* Custom classes for step-by-step guides */
+    .guide-section {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .step-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .step-class-name {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      color: var(--secondary);
+      background: rgba(0, 242, 254, 0.05);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+    }
+
+    .note-box {
+      background: rgba(130, 87, 229, 0.05);
+      border-left: 3px solid var(--primary);
+      padding: 1rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+
+    .note-box-title {
+      font-weight: 600;
+      margin-bottom: 0.25rem;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Sub Tabs inside simulator */
+    .sub-tabs {
+      display: flex;
+      gap: 0.25rem;
+      margin-bottom: 0.8rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.5rem;
+    }
+
+    .sub-tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 0.4rem 0.8rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.8rem;
+      transition: all 0.2s ease;
+    }
+
+    .sub-tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .sub-tab-btn.active {
+      color: var(--secondary);
+      background: rgba(0, 242, 254, 0.08);
+      border-color: rgba(0, 242, 254, 0.2);
+    }
+
+    /* RAG Internals Visualizations */
+    .diagram-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.01);
+      border: 1px solid var(--border-color);
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+    }
+
+    .diagram-node {
+      background: #1e2233;
+      border: 1px solid var(--primary);
+      padding: 0.8rem 1rem;
+      border-radius: 6px;
+      text-align: center;
+      font-size: 0.85rem;
+      box-shadow: 0 0 10px rgba(130, 87, 229, 0.1);
+    }
+
+    .diagram-node.vector-db {
+      border-color: var(--secondary);
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.1);
+    }
+
+    .diagram-arrow {
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+
+    .details-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .tech-spec-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--secondary);
+      margin-top: 0.75rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .tech-spec-val {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.82rem;
+      background: rgba(0,0,0,0.2);
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.03);
+      color: #bb9af7;
+    }
+
+    footer {
+      background-color: var(--bg-nav);
+      border-top: 1px solid var(--border-color);
+      padding: 1.5rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-container">
+      <div class="logo-badge">NLP Pipeline Builder</div>
+      <div>
+        <h1>NLP Semantic Data Pipeline Simulator</h1>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">NLP Semantic Data Pipeline Builder runtime visualizer</p>
+        <div class="author-badge" style="font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 1rem; align-items: center; opacity: 0.85;">
+          <span>👤 <strong>Naresh Sanda</strong> (Technical Architect)</span>
+          <span style="color: rgba(255,255,255,0.15)">|</span>
+          <span>📧 <a href="mailto:nareshkumar.sanda@gmail.com" style="color: var(--secondary); text-decoration: none;">nareshkumar.sanda@gmail.com</a></span>
+        </div>
+      </div>
+    </div>
+    <div class="nav-tabs">
+      <a href="index.html" class="tab-btn" style="text-decoration: none; display: inline-flex; align-items: center;">← Home</a>
+      <button class="tab-btn active" onclick="switchTab('sim')">Pipeline Simulator</button>
+      <button class="tab-btn" onclick="switchTab('rag')">Vector &amp; RAG Internals</button>
+      <button class="tab-btn" onclick="switchTab('details')">Component Details</button>
+      <button class="tab-btn" onclick="switchTab('rosetta')">Rosetta Stone (Java vs Python)</button>
+      <a href="rag_deep_dive.html" class="tab-btn" style="text-decoration: none; border: 1px solid rgba(0, 242, 254, 0.2); background: rgba(0, 242, 254, 0.05); color: var(--secondary); display: inline-flex; align-items: center;">RAG Deep Dive →</a>
+    </div>
+  </header>
+
+  <div class="container">
+    
+    <!-- Tab 1: Simulator -->
+    <div id="tab-sim" class="tab-content active">
+      <div class="grid-2">
+        
+        <!-- Left Side: Interactive Step Selector -->
+        <div class="card">
+          <div class="card-title">
+            <span style="color: var(--primary);">⚙️</span> NLP Translation Pipeline Steps
+          </div>
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.2rem;">
+            Click on any pipeline stage to view what happens under the hood during execution. Select a test query to trace the data transformation.
+          </p>
+          
+          <div class="q-selector" style="margin-bottom: 1.5rem;">
+            <label style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase; color: var(--secondary);">Select a Test Business Query:</label>
+            <select id="querySelect" class="select-input" onchange="runSimulation()">
+              <option value="margin">"Product margin analysis"</option>
+              <option value="supplier">"Orders by supplier"</option>
+              <option value="warehouse">"Sales by warehouse"</option>
+              <option value="revenue">"Show monthly revenue by customer"</option>
+              <option value="growth">"Customer growth trend" (triggers clarification)</option>
+            </select>
+          </div>
+
+          <div class="flow-steps">
+            <div class="flow-step-node active" id="step-node-init" onclick="setStep('init')">
+              <div class="step-number">Initialization</div>
+              <div class="step-name">0. DB Setup &amp; Embedding Seed</div>
+              <div class="step-desc">Populates SQLite metadata tables &amp; seeds ChromaDB rules vectors.</div>
+            </div>
+            
+            <div class="flow-step-node" id="step-node-analyze" onclick="setStep('analyze')">
+              <div class="step-number">Stage 1</div>
+              <div class="step-name">1. NLP Analyzer</div>
+              <div class="step-desc">Extracts keyword entities, metrics, and filters from the query.</div>
+            </div>
+            
+            <div class="flow-step-node" id="step-node-lookup" onclick="setStep('lookup')">
+              <div class="step-number">Stage 2</div>
+              <div class="step-name">2. Metadata Lookup</div>
+              <div class="step-desc">Queries SQLite to resolve semantic names, IDs, and structural links.</div>
+            </div>
+            
+            <div class="flow-step-node" id="step-node-retrieve" onclick="setStep('retrieve')">
+              <div class="step-number">Stage 3</div>
+              <div class="step-name">3. RAG Semantic Retriever</div>
+              <div class="step-desc">Queries ChromaDB using SentenceTransformers embeddings for rules.</div>
+            </div>
+            
+            <div class="flow-step-node" id="step-node-context" onclick="setStep('context')">
+              <div class="step-number">Stage 4</div>
+              <div class="step-name">4. Context Builder</div>
+              <div class="step-desc">Merges structured schema mappings and semantic rules into a single payload.</div>
+            </div>
+            
+            <div class="flow-step-node" id="step-node-generate" onclick="setStep('generate')">
+              <div class="step-number">Stage 5</div>
+              <div class="step-name">5. SQL Generator &amp; Join Resolver</div>
+              <div class="step-desc">Generates syntactically correct SQL with dynamic multi-table join conditions.</div>
+            </div>
+            
+            <div class="flow-step-node" id="step-node-score" onclick="setStep('score')">
+              <div class="step-number">Stage 6 &amp; 7</div>
+              <div class="step-name">6 &amp; 7. Confidence Scorer &amp; Clarification</div>
+              <div class="step-desc">Scores execution confidence and flags questions missing essential dimensions.</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Right Side: Console Output Simulator -->
+        <div class="card secondary-accent" style="display: flex; flex-direction: column; min-height: 580px;">
+          <div class="card-title" style="margin-bottom: 0.5rem; border-bottom: none; padding-bottom: 0.2rem;">
+            <span style="color: var(--secondary);">🖥️</span> Execution Trace Inspector
+          </div>
+          
+          <div class="sub-tabs">
+            <button class="sub-tab-btn active" id="subtab-btn-log" onclick="switchSubTab('log')">Console Trace</button>
+            <button class="sub-tab-btn" id="subtab-btn-py" onclick="switchSubTab('py')">Python Source</button>
+            <button class="sub-tab-btn" id="subtab-btn-java" onclick="switchSubTab('java')">Java Analogy</button>
+          </div>
+
+          <div class="sim-panel" style="flex: 1; display: flex; flex-direction: column;">
+            <div class="console" id="console-display" style="flex: 1;">
+              <!-- Content gets injected by JS -->
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Tab RAG: Vector & RAG Internals -->
+    <div id="tab-rag" class="tab-content">
+      
+      <!-- Vector Analogy Card for Java Developers -->
+      <div class="card">
+        <div class="card-title">
+          <span style="color: var(--primary);">🧠</span> What is an Embedding? (An Analogy for Java Developers)
+        </div>
+        <p style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 1rem;">
+          Think of a <strong>Vector Embedding</strong> as a <strong>GPS coordinate for meaning</strong>. 
+        </p>
+        <p style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 1rem;">
+          To define a physical location on Earth, you use 2 coordinates: <code>[Latitude, Longitude]</code>. 
+          Dallas, TX is located at <code>[32.77, -96.79]</code>. Fort Worth, TX is located at <code>[32.75, -97.33]</code>. 
+          Because their coordinate values are extremely similar, you can calculate the distance between them and know they are close. 
+          Tokyo, Japan is located at <code>[35.67, 139.65]</code>, which is numerically far away.
+        </p>
+        <p style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 1rem;">
+          Vector models do the exact same thing but for **semantic concepts** instead of geographical cities, using **384 coordinates** instead of 2.
+          When the SentenceTransformer model parses the sentence <code>"monthly revenue"</code>, it positions it at a specific location in a 384-dimensional space.
+          The sentence <code>"sales income net calculation"</code> gets positioned very close to it, whereas <code>"warehouse vendor supplier"</code> is positioned far away.
+        </p>
+      </div>
+
+      <!-- Interactive Proximity Table -->
+      <div class="card secondary-accent">
+        <div class="card-title">
+          <span style="color: var(--secondary);">📊</span> Semantic Proximity Simulator
+        </div>
+        <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Here is a mock representation of how different sentences are converted to vectors (showing only 3 dimensions instead of 384 for simplicity) and compared against a user query using Cosine Similarity.
+        </p>
+        
+        <table class="compare-table" style="font-size: 0.85rem;">
+          <thead>
+            <tr>
+              <th>Sentence Type</th>
+              <th>Actual Text</th>
+              <th>Vector Coordinates [Dim 1, Dim 2, Dim 3]</th>
+              <th>Distance to Query</th>
+              <th>Cosine Similarity</th>
+              <th>Match Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="background: rgba(0, 242, 254, 0.03);">
+              <td><strong>User Query</strong></td>
+              <td style="color: var(--secondary); font-weight: 600;">"Product margin analysis"</td>
+              <td><code>[ 0.85,  0.72,  0.10 ]</code></td>
+              <td>-</td>
+              <td>-</td>
+              <td>Target Query</td>
+            </tr>
+            <tr>
+              <td>Business Rule</td>
+              <td>"Rule 2: Profit Margin is calculated as..."</td>
+              <td><code>[ 0.82,  0.70,  0.14 ]</code></td>
+              <td style="color: #9ece6a;">Small (0.05)</td>
+              <td style="color: #9ece6a; font-weight: bold;">0.97 (97%)</td>
+              <td><span class="compare-badge java" style="background: rgba(158,206,106,0.1); color: #9ece6a; border-color: rgba(158,206,106,0.2);">Strong Match</span></td>
+            </tr>
+            <tr>
+              <td>Glossary Term</td>
+              <td>"Term: Dimension - A categorical variable..."</td>
+              <td><code>[ 0.40,  0.31,  0.62 ]</code></td>
+              <td>Medium (0.80)</td>
+              <td>0.54 (54%)</td>
+              <td>No Match (&lt; threshold)</td>
+            </tr>
+            <tr>
+              <td>Business Rule</td>
+              <td>"Rule 3: Active Customers placed orders..."</td>
+              <td><code>[ 0.11,  0.08,  0.91 ]</code></td>
+              <td style="color: var(--accent);">Large (1.45)</td>
+              <td style="color: var(--accent);">0.21 (21%)</td>
+              <td><span class="compare-badge java" style="background: rgba(255,0,127,0.1); color: var(--accent); border-color: rgba(255,0,127,0.2);">Rejected</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Flow Diagram Card -->
+      <div class="card">
+        <div class="card-title">
+          <span style="color: var(--secondary);">⛓️</span> Vector DB &amp; RAG Architecture Flow
+        </div>
+        <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+          The diagram below charts the sequence of files, classes, and vector operations from raw documentation indexing to runtime similarity lookup.
+        </p>
+        
+        <div class="diagram-container">
+          <div class="diagram-node">
+            <div style="font-weight: bold;">Unstructured Data</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">semantic_business_rules.txt</div>
+          </div>
+          <div class="diagram-arrow">&rarr;</div>
+          <div class="diagram-node">
+            <div style="font-weight: bold;">src/phase1_ingestion/chunking/chunker.py</div>
+            <div style="font-size: 0.75rem; color: var(--secondary);">class Chunker</div>
+          </div>
+          <div class="diagram-arrow">&rarr;</div>
+          <div class="diagram-node">
+            <div style="font-weight: bold;">src/phase1_ingestion/embeddings/embedder.py</div>
+            <div style="font-size: 0.75rem; color: var(--secondary);">class Embedder</div>
+          </div>
+          <div class="diagram-arrow">&rarr;</div>
+          <div class="diagram-node vector-db">
+            <div style="font-weight: bold; color: var(--secondary);">vector_store/</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">ChromaDB Index</div>
+          </div>
+          <div class="diagram-arrow">&larr;</div>
+          <div class="diagram-node">
+            <div style="font-weight: bold;">src/phase2_retrieval/retrieval/rag_retriever.py</div>
+            <div style="font-size: 0.75rem; color: var(--secondary);">class RAGRetriever</div>
+          </div>
+          <div class="diagram-arrow">&larr;</div>
+          <div class="diagram-node">
+            <div style="font-weight: bold;">run_phase2_retrieval.py</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">User Query</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step-by-Step API Details -->
+      <div class="details-grid">
+        
+        <!-- Chunking Card -->
+        <div class="card">
+          <div class="card-title">
+            <span style="color: var(--secondary);">1️⃣</span> Document Chunking Stage
+          </div>
+          
+          <div class="tech-spec-label">File Path</div>
+          <div class="tech-spec-val">src/phase1_ingestion/chunking/chunker.py</div>
+
+          <div class="tech-spec-label">Class Name</div>
+          <div class="tech-spec-val">Chunker</div>
+
+          <div class="tech-spec-label">Method Name</div>
+          <div class="tech-spec-val">chunk_text(self, text, metadata=None)</div>
+
+          <div class="tech-spec-label">Input Data Type</div>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">
+            <code>text</code>: <span class="tech-spec-val" style="color: var(--secondary);">String</span> (The raw text file content from <code>semantic_business_rules.txt</code>)
+          </div>
+
+          <div class="tech-spec-label">Output Data Type</div>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">
+            <span class="tech-spec-val" style="color: var(--secondary);">List[String]</span> (A Python list containing isolated semantic chunks)
+          </div>
+
+          <div class="tech-spec-label">Process Details</div>
+          <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; margin-top: 0.2rem;">
+            When using the <code>"metadata-aware"</code> strategy, the parser loops through each line in the text. It uses regex boundary headers:
+            <code>line.startswith("Term:")</code> and <code>line.startswith("Rule ")</code> to group text block paragraphs.
+            This splits the raw file into clean separate rule arrays:
+            <code>["Rule 1: Revenue Calculation...", "Rule 2: Profit Margin..."]</code>.
+          </p>
+        </div>
+
+        <!-- Embedding Card -->
+        <div class="card secondary-accent">
+          <div class="card-title">
+            <span style="color: var(--secondary);">2️⃣</span> Vector Embedding &amp; Indexing
+          </div>
+          
+          <div class="tech-spec-label">File Path</div>
+          <div class="tech-spec-val">src/phase1_ingestion/embeddings/embedder.py</div>
+
+          <div class="tech-spec-label">Class Name</div>
+          <div class="tech-spec-val">Embedder</div>
+
+          <div class="tech-spec-label">Method Name</div>
+          <div class="tech-spec-val">add_chunks(self, chunks, metadatas=None)</div>
+
+          <div class="tech-spec-label">Input Data Type</div>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">
+            <code>chunks</code>: <span class="tech-spec-val" style="color: var(--secondary);">List[String]</span> (The list of chunk strings from Stage 1)
+          </div>
+
+          <div class="tech-spec-label">Output Data Type</div>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">
+            <span class="tech-spec-val" style="color: var(--secondary);">None</span> (Persists the indices directly into SQLite-backed Chroma database)
+          </div>
+
+          <div class="tech-spec-label">Vector Generation Code</div>
+          <pre style="font-size: 0.75rem; padding: 0.5rem; margin-top: 0.2rem;"><code># inside add_chunks
+embeddings = self.model.encode(chunks).tolist()
+# returns N x 384 dimensional float arrays
+self.collection.add(
+    embeddings=embeddings,
+    documents=chunks,
+    ids=ids,
+    metadatas=metadatas
+)</code></pre>
+        </div>
+
+        <!-- Search & Similarity Scoring Card -->
+        <div class="card accent-accent">
+          <div class="card-title">
+            <span style="color: var(--secondary);">3️⃣</span> Select &amp; Similarity Search
+          </div>
+          
+          <div class="tech-spec-label">File Path</div>
+          <div class="tech-spec-val">src/phase2_retrieval/retrieval/rag_retriever.py</div>
+
+          <div class="tech-spec-label">Class Name</div>
+          <div class="tech-spec-val">RAGRetriever</div>
+
+          <div class="tech-spec-label">Method Name</div>
+          <div class="tech-spec-val">retrieve(self, query, top_k=3, threshold=0.3)</div>
+
+          <div class="tech-spec-label">Input Data Type</div>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">
+            <code>query</code>: <span class="tech-spec-val" style="color: var(--secondary);">String</span> (The natural language query, e.g. <code>"Product margin analysis"</code>)
+          </div>
+
+          <div class="tech-spec-label">Output Data Type</div>
+          <div style="font-size: 0.85rem; color: var(--text-muted);">
+            <span class="tech-spec-val" style="color: var(--secondary);">List[Dict]</span> (List of matched chunks with their scores)
+          </div>
+
+          <div class="tech-spec-label">Cosine Similarity Conversion Math</div>
+          <pre style="font-size: 0.75rem; padding: 0.5rem; margin-top: 0.2rem;"><code># Chroma DB returns squared L2 distances
+similarity = max(0, 1 - (distance / 2))</code></pre>
+
+          <div class="tech-spec-label">Hybrid Ranking Math</div>
+          <pre style="font-size: 0.75rem; padding: 0.5rem; margin-top: 0.2rem;"><code># Blends vector similarity and keyword BM25
+final_score = (similarity * 0.7) + (bm25 * 0.3)</code></pre>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Tab 2: Component Details -->
+    <div id="tab-details" class="tab-content">
+      <div class="guide-section">
+        
+        <!-- Deep Dive: Chunking Card -->
+        <div class="card secondary-accent">
+          <div class="step-card-header">
+            <h2 class="card-title" style="margin-bottom:0; border:none; padding:0;">🔬 Deep Dive: Chunking Mechanics</h2>
+            <div class="step-class-name">chunking.chunker.Chunker</div>
+          </div>
+          <p style="margin-bottom: 1rem;">
+            Chunking is the process of breaking down large documents into smaller, distinct text blocks. It is essential because Machine Learning models have finite context token windows, and small, focused blocks yield cleaner embedding representations and avoid noise dilution in semantic searches.
+          </p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-bottom: 1rem; margin-top: 1rem;">
+            <div style="background: rgba(255,255,255,0.02); padding: 1.2rem; border-radius: 8px; border: 1px solid var(--border-color);">
+              <h3 style="color: var(--secondary); font-size: 0.95rem; margin-bottom: 0.5rem; font-weight:600;">Fixed Chunker</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">Splits text strictly by a character count (e.g. 200 characters). Fast and simple, but can cut words, sentences, or numbers in half, breaking semantic context.</p>
+            </div>
+            <div style="background: rgba(255,255,255,0.02); padding: 1.2rem; border-radius: 8px; border: 1px solid var(--border-color);">
+              <h3 style="color: var(--primary); font-size: 0.95rem; margin-bottom: 0.5rem; font-weight:600;">Recursive Chunker</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">Splits text using hierarchical delimiters (double newlines first for paragraphs, then single newlines for sentences, then spaces) to keep semantic thoughts intact.</p>
+            </div>
+            <div style="background: rgba(255,255,255,0.02); padding: 1.2rem; border-radius: 8px; border: 1px solid var(--border-color);">
+              <h3 style="color: var(--accent); font-size: 0.95rem; margin-bottom: 0.5rem; font-weight:600;">Metadata-Aware Chunker</h3>
+              <p style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4;">Splits dynamically based on header boundaries (checks if a line starts with <code>Term:</code> or <code>Rule </code>). Ensures related properties (like a rule description) remain grouped together.</p>
+            </div>
+          </div>
+          <div class="note-box">
+            <div class="note-box-title">💡 Java Equivalent</div>
+            In Java, chunking is standardly done using splitting classes in <strong>LangChain4j</strong> (e.g., <code>DocumentSplitters.recursive(...)</code>) or Custom Lexers implementing boundary matchers.
+          </div>
+        </div>
+
+        <!-- Deep Dive: Embeddings Card -->
+        <div class="card">
+          <div class="step-card-header">
+            <h2 class="card-title" style="margin-bottom:0; border:none; padding:0;">🧠 Deep Dive: Vector Embeddings</h2>
+            <div class="step-class-name">phase1_ingestion.embeddings.embedder.Embedder</div>
+          </div>
+          <p style="margin-bottom: 1rem;">
+            An embedding is a numerical representation of unstructured text. It maps words and sentences into a high-dimensional vector space. The key feature is that text blocks with similar semantic meanings will reside close to each other in this coordinate space, regardless of the exact vocabulary used.
+          </p>
+          <ul style="margin-left: 2rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; font-size: 0.9rem;">
+            <li><strong>Underlying Model</strong>: <code>all-MiniLM-L6-v2</code> is a highly efficient transformer model trained to convert text inputs of up to 256 tokens into coordinate vectors.</li>
+            <li><strong>Vector Dimensionality</strong>: Produces vectors containing exactly <strong>384 floating-point coordinates</strong>.</li>
+            <li><strong>Vector Database Storage</strong>: ChromaDB acts as the local storage indexing engine (analogous to a vector-optimized Lucene index or Elasticsearch index), saving vectors to disk under <code>vector_store/</code>.</li>
+          </ul>
+          <div class="note-box">
+            <div class="note-box-title">💡 Java Equivalent</div>
+            In Java, this is mapped to an <code>EmbeddingModel</code> (e.g. <code>AllMiniLmL6V2EmbeddingModel</code> from LangChain4j) and stored in vector repositories like Chroma, Milvus, or Pgvector.
+          </div>
+        </div>
+
+        <!-- Deep Dive: Vector Similarity Math Card -->
+        <div class="card accent-accent">
+          <div class="step-card-header">
+            <h2 class="card-title" style="margin-bottom:0; border:none; padding:0;">📐 Deep Dive: Similarity Math &amp; Hybrid Re-ranking</h2>
+            <div class="step-class-name">phase2_retrieval.retrieval.rag_retriever.RAGRetriever</div>
+          </div>
+          <p style="margin-bottom: 1rem;">
+            Vector search calculates proximity by comparing query vectors against indexed vectors. The pipeline uses two core algorithms to filter and rank rules:
+          </p>
+          
+          <div style="background: rgba(0,0,0,0.3); padding: 1.5rem; border-radius: 8px; font-family: 'Fira Code', monospace; font-size: 0.9rem; margin-bottom: 1.2rem; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 1.2rem; line-height: 1.5;">
+            <div>
+              <div style="color: var(--secondary); margin-bottom: 0.25rem; font-weight: bold;">1. Distance to Cosine Similarity Conversion:</div>
+              <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border-radius: 4px; margin-bottom: 0.4rem; font-size: 0.95rem;">
+                similarity = max(0, 1 - (L2_distance / 2))
+              </div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">
+                ChromaDB defaults to Euclidean distance (squared L2 distance). Because SentenceTransformer vectors are unit-normalized (length = 1), their squared L2 distance spans from 0 to 4. We map this back to standard Cosine Similarity (0 to 1) for scoring.
+              </div>
+            </div>
+            
+            <div>
+              <div style="color: var(--accent); margin-bottom: 0.25rem; font-weight: bold;">2. Hybrid Scoring Equation (Combining Vector Search &amp; Keyword relevance):</div>
+              <div style="background: rgba(255,255,255,0.03); padding: 0.5rem; border-radius: 4px; margin-bottom: 0.4rem; font-size: 0.95rem;">
+                final_hybrid_score = (similarity * 0.7) + (bm25_score * 0.3)
+              </div>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">
+                We implement a hybrid ranking mechanism: Vector search models semantic meaning (70% weight) while keyword matching (BM25 simulation, 30% weight) ensures exact keywords are not lost, producing much cleaner retrieval under short query inputs.
+              </div>
+            </div>
+          </div>
+          <div class="note-box">
+            <div class="note-box-title">💡 Java Equivalent</div>
+            Calculations like Cosine Similarity or dot products are built directly into LangChain4j embedding store matching algorithms or executed at database level (e.g. pgvector <code>&lt;=&gt;</code> operator).
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="step-card-header">
+            <h2 class="card-title" style="margin-bottom:0; border:none; padding:0;">Stage 0: Initialization Flow</h2>
+            <div class="step-class-name">phase1_ingestion.loaders.metadata_loader | phase1_ingestion.embeddings.embedder</div>
+          </div>
+          <p style="margin-bottom: 1rem;">
+            When you run the ingestion pipeline (<code>python run_phase1_ingestion.py</code>), the script initializes the workspace storage layers:
+          </p>
+          <ol style="margin-left: 2rem; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+            <li><strong>SQLite setup (<code>setup_database</code>)</strong>: Reads metadata CSV/JSON files from <code>metadata/</code> directory (like <code>semantic_entities.csv</code>) and loads them into local SQLite database <code>db/metadata.db</code> using <strong>Pandas</strong> (similar to mapping files directly into H2 tables using JDBC/Hibernate).</li>
+            <li><strong>ChromaDB setup (<code>initialize_knowledge_base</code>)</strong>: Reads unstructured rules (<code>semantic_business_rules.txt</code>) and glossary (<code>semantic_glossary.txt</code>). The <code>Chunker</code> splits files into discrete semantic entries (like separate glossary terms or business rules). The <code>Embedder</code> loads the <code>SentenceTransformer('all-MiniLM-L6-v2')</code> model, converts these text blocks into 384-dimension vector embeddings, and stores them in ChromaDB (like a search index).</li>
+          </ol>
+        </div>
+
+        <div class="card secondary-accent">
+          <div class="step-card-header">
+            <h2 class="card-title" style="margin-bottom:0; border:none; padding:0;">Stage 1: NLP Question Analysis</h2>
+            <div class="step-class-name">phase2_retrieval.analyzer.nlp_analyzer.NLPAnalyzer</div>
+          </div>
+          <p style="margin-bottom: 1rem;">
+            Analyzes raw string input to parse tokens into logical categories: <strong>metrics</strong>, <strong>entities</strong>, <strong>time_grain</strong>, and <strong>filters</strong>.
+          </p>
+        </div>
+
+        <div class="card">
+          <div class="step-card-header">
+            <h2 class="card-title" style="margin-bottom:0; border:none; padding:0;">Stage 2: Metadata Lookup</h2>
+            <div class="step-class-name">phase2_retrieval.metadata_lookup.lookup_engine.LookupEngine</div>
+          </div>
+          <p style="margin-bottom: 1rem;">
+            Queries the local SQLite database to resolve extracted keywords into real database mappings:
+          </p>
+          <ul style="margin-left: 2rem; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+            <li><strong>Entities</strong>: Finds matching rows in <code>semantic_entities</code> by comparing synonyms using a SQL <code>LIKE</code> query (e.g. <code>WHERE synonyms LIKE '%supplier%'</code>).</li>
+            <li><strong>Metrics</strong>: Finds corresponding rows in <code>semantic_metrics</code> (e.g. resolving keyword "margin" to metric ID <code>m3</code> named <code>Margin</code> with formula calculation).</li>
+            <li><strong>Relationships</strong>: Queries <code>semantic_relationships</code> to identify whether the resolved entities have any documented relationships (e.g. Customer has a one-to-many relationship with Order).</li>
+          </ul>
+        </div>
+
+        <div class="card secondary-accent">
+          <div class="step-card-header">
+            <h2 class="card-title" style="margin-bottom:0; border:none; padding:0;">Stage 3: Semantic RAG Retrieval</h2>
+            <div class="step-class-name">phase2_retrieval.retrieval.rag_retriever.RAGRetriever</div>
+          </div>
+          <p style="margin-bottom: 1rem;">
+            Vector databases enable retrieving context based on <em>meaning</em> rather than exact keyword matches:
+          </p>
+          <ol style="margin-left: 2rem; margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+            <li>Converts the user's natural language query into a vector representation (384-dimensional array) using the Sentence Transformer model.</li>
+            <li>Sends this query vector to ChromaDB to retrieve the top 3 closest document chunks based on <strong>Cosine Similarity</strong>.</li>
+            <li>Filters out chunks that fall below a similarity threshold (e.g., 0.3) and ranks them using a hybrid score combining vector search distance and simulated keyword relevance (BM25).</li>
+          </ol>
+        </div>
+
+        <div class="card accent-accent">
+          <div class="step-card-header">
+            <h2 class="card-title" style="margin-bottom:0; border:none; padding:0;">Stage 5: SQL Generator &amp; dynamic Joins</h2>
+            <div class="step-class-name">phase2_retrieval.sql_generator.generator.SQLGenerator</div>
+          </div>
+          <p style="margin-bottom: 1rem;">
+            Translates the mapped entities, metrics, grain, and filters into a valid SQL query.
+          </p>
+          <div class="note-box">
+            <div class="note-box-title">🔍 Dynamic Join Resolution Logic</div>
+            If multiple tables are identified in the query, the generator automatically determines join keys:
+            <ul style="margin-left: 1.5rem; margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.3rem;">
+              <li><code>customers c</code> &amp; <code>orders o</code> &rarr; <code>c.customer_id = o.customer_id</code></li>
+              <li><code>regions r</code> &amp; <code>orders o</code> &rarr; <code>r.region_id = o.region_id</code></li>
+              <li><code>products p</code> &amp; <code>orders o</code> &rarr; <code>p.product_id = o.product_id</code></li>
+              <li><code>suppliers s</code> &amp; <code>orders o</code> &rarr; bridge automatically using <code>products p</code> and add join predicates: <code>s.supplier_id = p.supplier_id AND p.product_id = o.product_id</code></li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Tab 3: Rosetta Stone -->
+    <div id="tab-rosetta" class="tab-content">
+      <div class="card">
+        <div class="card-title">
+          <span style="color: var(--java-orange);">☕</span> Java vs Python: Concept &amp; Environment Equivalents
+        </div>
+        <p style="font-size: 0.95rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+          Use this cheat sheet to translate Python's package management, isolation, imports, and compilation to Java ecosystem conventions.
+        </p>
+
+        <table class="compare-table">
+          <thead>
+            <tr>
+              <th style="width: 25%;">Feature</th>
+              <th style="width: 37%;"><span class="compare-badge java">Java Ecosystem</span></th>
+              <th style="width: 38%;"><span class="compare-badge python">Python Ecosystem</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Virtual Isolation</strong></td>
+              <td><strong>Project SDK (e.g. JDK 17, JDK 21)</strong><br>Selected in IDE configuration. System-wide installs are referenced via Maven classpath.</td>
+              <td><strong>Virtual Environment (<code>.venv/</code>)</strong><br>An isolated folder inside the project containing the Python binary and local package folder (<code>site-packages</code>). Prevents package collision.</td>
+            </tr>
+            <tr>
+              <td><strong>Dependency Config</strong></td>
+              <td><strong><code>pom.xml</code> (Maven) or <code>build.gradle</code> (Gradle)</strong><br>Specifies artifact ID, group, scope, and versions.</td>
+              <td><strong><code>requirements.txt</code></strong><br>A flat list of dependencies with optional version pins (e.g., <code>pandas==3.0.3</code>). Pip downloads them.</td>
+            </tr>
+            <tr>
+              <td><strong>Compiler Output</strong></td>
+              <td><strong><code>target/classes/</code> (<code>.class</code> bytecode files)</strong><br>Produced by <code>javac</code>. Packed into <code>.jar</code> files.</td>
+              <td><strong><code>__pycache__/</code> (<code>.pyc</code> compiled bytecode files)</strong><br>Created dynamically by the Python interpreter on import to speed up load times. Safe to delete.</td>
+            </tr>
+            <tr>
+              <td><strong>Classpath &amp; Imports</strong></td>
+              <td><strong>Package Imports &amp; Source Roots</strong><br>
+                e.g., <code>import com.company.loaders.MetadataLoader;</code><br>
+                Configured via IDE project settings (source directories).
+              </td>
+              <td><strong><code>sys.path</code> &amp; Absolute Package Paths</strong><br>
+                Python looks up folders listed in <code>sys.path</code>. We dynamically append <code>src/</code> in [run_phase1_ingestion.py](file:///d:/anvizent-datapipeline-nlp-poc/ai_dw_nlp_poc/run_phase1_ingestion.py) / [run_phase2_retrieval.py](file:///d:/anvizent-datapipeline-nlp-poc/ai_dw_nlp_poc/run_phase2_retrieval.py) and use absolute imports: <code>from src.phase1_ingestion.loaders.metadata_loader import ...</code>.
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Embedded Database</strong></td>
+              <td><strong>H2, Derby, or HSQLDB</strong><br>Typically loaded in memory or saved as a single local file.</td>
+              <td><strong>SQLite (<code>sqlite3</code>)</strong><br>Part of python standard library. Stores database as a single file (<code>db/metadata.db</code>).</td>
+            </tr>
+            <tr>
+              <td><strong>Vector DB Client</strong></td>
+              <td><strong>Milvus Java SDK / pgvector JDBC / LangChain4j</strong></td>
+              <td><strong>ChromaDB Client (<code>chromadb</code>)</strong><br>Provides an embedded vector DB server that runs locally inside the process.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="code-comparison">
+          <div>
+            <div class="code-block-header">
+              <span><span class="compare-badge java">Java (JDBC + H2)</span></span>
+              <span>Java equivalent</span>
+            </div>
+            <pre><code>// Connecting to H2 DB in Java
+Connection conn = DriverManager.getConnection(
+    "jdbc:h2:./db/metadata", "sa", "");
+Statement stmt = conn.createStatement();
+ResultSet rs = stmt.executeQuery(
+    "SELECT entity_name FROM semantic_entities");
+while (rs.next()) {
+    System.out.println(rs.getString("entity_name"));
+}
+conn.close();</code></pre>
+          </div>
+          <div>
+            <div class="code-block-header">
+              <span><span class="compare-badge python">Python (sqlite3)</span></span>
+              <span>Python code</span>
+            </div>
+            <pre><code># Connecting to SQLite in Python
+import sqlite3
+
+conn = sqlite3.connect("db/metadata.db")
+cursor = conn.cursor()
+cursor.execute(
+    "SELECT entity_name FROM semantic_entities"
+)
+rows = cursor.fetchall()
+for row in rows:
+    print(row[0])  # prints entity_name
+conn.close()</code></pre>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <p>NLP Semantic Data Pipeline Builder. Created to trace processing pipelines.</p>
+  </footer>
+
+  <script>
+    // Code Snippets Data Model for each step
+    const codeSnippets = {
+      init: {
+        py: `# phase1_ingestion/embeddings/embedder.py (Robust Embeddings Setup with Fallback)
+class Embedder:
+    def __init__(self, db_dir):
+        self.use_fallback = False
+        try:
+            import chromadb
+            from sentence_transformers import SentenceTransformer
+            self.client = chromadb.PersistentClient(path=db_dir)
+            self.collection = self.client.get_or_create_collection("semantic_knowledge")
+            self.model = SentenceTransformer('all-MiniLM-L6-v2')
+        except Exception as e:
+            print(f"[Embedder] Initialization failed: {e}")
+            self.use_fallback = True
+
+    def add_chunks(self, chunks):
+        if self.use_fallback:
+            print("[Embedder Fallback] Simulating chunk storage.")
+            return
+        embeddings = self.model.encode(chunks).tolist()
+        self.collection.add(embeddings=embeddings, documents=chunks, ...)`,
+        java: `// Load CSV into database using Java (Commons CSV + JDBC)
+public void setupDatabase(String dbUrl, String metadataDir) throws Exception {
+    Connection conn = DriverManager.getConnection(dbUrl);
+    String[] csvFiles = {"semantic_entities", "semantic_metrics", ...};
+    for (String table : csvFiles) {
+        Reader reader = new FileReader(metadataDir + "/" + table + ".csv");
+        Iterable<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(reader);
+        // Execute JDBC Batch Insert into local H2 / SQLite table...
+    }
+}
+
+// Vector DB configuration in Java using LangChain4j and Chroma
+public class VectorStoreConfig {
+    public EmbeddingStore<TextSegment> initVectorStore() {
+        EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
+        EmbeddingStore<TextSegment> store = new ChromaEmbeddingStore("localhost", 8000, "knowledge");
+        return store;
+    }
+}`
+      },
+      analyze: {
+        py: `# phase2_retrieval/analyzer/nlp_analyzer.py (LLM Intent Parsing with Regex Fallback)
+class NLPAnalyzer:
+    def _analyze_with_llm(self, question, prompt):
+        # 1. Checks for OPENAI_API_KEY or GOOGLE_API_KEY
+        # 2. Calls LLM with structured JSON output instructions
+        ...
+
+    def analyze(self, question):
+        prompt = "..." # constructs LLM Query Planner Prompt
+        try:
+            extracted = self._analyze_with_llm(question, prompt)
+            print("[LLM Parser] Successfully extracted intent using LLM.")
+        except Exception as e:
+            print(f"[LLM Parser] Fallback triggered: {e}")
+            print("[LLM Parser] Executing local deterministic parser...")
+            # Fallback: search known metrics/entities keywords in question
+            extracted = {"metrics": [], "entities": [], "time_grain": None, "filters": []}
+            # ...
+        return extracted`,
+        java: `// LangChain4j Structured AI Service (Production) or Regex Parser (Java Fallback)
+public class NLPAnalyzer {
+    public ExtractedData analyze(String question) {
+        // Fallback: local Regex/keywords checks in Java
+        // Production: call LangChain4j ChatLanguageModel mapped to a Java Record DTO:
+        // interface PlannerService {
+        //     @UserMessage("Parse question: {{it}}")
+        //     ExtractedData parse(String question);
+        // }
+    }
+}`
+      },
+      lookup: {
+        py: `# phase2_retrieval/metadata_lookup/lookup_engine.py (SQLite Query with CSV Fallback)
+class LookupEngine:
+    def lookup(self, extracted_data):
+        try:
+            # Query local SQLite database (semantic_entities, semantic_metrics)
+            conn = self._get_connection()
+            cursor = conn.cursor()
+            # ...
+            return results
+        except Exception as e:
+            print(f"[Lookup Engine] SQLite lookup failed: {e}")
+            print("[Lookup Engine] Fallback triggered. Executing local CSV metadata lookup...")
+            # Fallback: Parse CSV files directly using standard CSV dictreader
+            # Match entities and metrics synonyms...
+            return results`,
+        java: `// JPA Lookup with Direct CSV File Parser Fallback
+public class LookupService {
+    public LookupResults lookup(ExtractedData data) {
+        try {
+            // Try JPA EntityManager query database
+        } catch (Exception e) {
+            // Local CSV parser fallback (e.g. using OpenCSV or standard BufferedReader)
+            // Parse entities.csv and metrics.csv manually to map IDs
+        }
+    }
+}`
+      },
+      retrieve: {
+        py: `# phase2_retrieval/retrieval/rag_retriever.py (Vector Similarity with Word-Overlap Fallback)
+class RAGRetriever:
+    def retrieve(self, query, top_k=3, threshold=0.3):
+        if self.use_fallback:
+            return self._fallback_retrieve(query, top_k, threshold)
+        try:
+            # Vector Search: query ChromaDB using SentenceTransformer embeddings
+            results = self.collection.query(query_embeddings, n_results=top_k+2)
+            # convert Euclidean L2 distance to Cosine Similarity score:
+            # similarity = max(0, 1 - (distance / 2))
+            ...
+        except Exception as e:
+            return self._fallback_retrieve(query, top_k, threshold)
+
+    def _fallback_retrieve(self, query, top_k=3, threshold=0.1):
+        # Pure Python Fallback: Reads semantic_business_rules.txt
+        # and scores chunks based on exact query word overlap Jaccard ratio.
+        ...`,
+        java: `// Java LangChain4j Vector DB with local text split fallback
+public class SemanticRetriever {
+    public List<TextSegment> retrieve(String query) {
+        // Try Chroma store query
+        // Fallback: parse rules.txt, split, and do token-matching cosine/Jaccard
+    }
+}`
+      },
+      context: {
+        py: `# phase2_retrieval/context_builder/builder.py
+class ContextBuilder:
+    def build_context(self, lookup_results, rag_results):
+        # Merges SQL database metadata and RAG rules into a unified prompt payload
+        context = {
+            "entities": lookup_results.get("matched_entities", []),
+            "metrics": lookup_results.get("matched_metrics", []),
+            "relationships": lookup_results.get("relationships", []),
+            "business_rules": [res["chunk"] for res in rag_results]
+        }
+        return context`,
+        java: `// Java Context Builder DTO
+public class ContextBuilder {
+    public PipelineContext buildContext(LookupResults lookup, List<TextSegment> ragDocs) {
+        // Merges entities, metrics, joins, and rules into a single context DTO
+    }
+}`
+      },
+      generate: {
+        py: `# phase2_retrieval/sql_generator/generator.py (LLM Generation with Template/Rule Fallback)
+class SQLGenerator:
+    def generate(self, context, extracted_data, question=None):
+        prompt = "..." # Prompt with database schemas, joins, rules, and question
+        try:
+            # Stage 5 Production: call LLM (OpenAI / Gemini)
+            sql = self._generate_with_llm(prompt)
+            print("[LLM Generator] Successfully generated SQL using LLM.")
+            return sql
+        except Exception as e:
+            # Fallback Stage: deterministic join resolver and templates
+            print(f"[LLM Generator] Fallback triggered: {e}")
+            # Resolves table keys, resolves joins c.customer_id = o.customer_id, etc.
+            # Assemble SQL select, from, where, group by, order by
+            return sql`,
+        java: `// MyBatis SQL Provider or Spring SQL builder with LLM fallback
+public class SQLGenerator {
+    public String generate(PipelineContext context, ExtractedData extracted) {
+        // Fallback: Spring JDBC SQL builder / MyBatis XML templates
+        // Production: call LangChain4j ChatLanguageModel with database context DTO
+    }
+}`
+      },
+      score: {
+        py: `# phase2_retrieval/confidence/scorer.py (LLM Confidence Scorer with Math Fallback)
+class ConfidenceScorer:
+    def calculate_score(self, context, extracted_data, rag_results):
+        prompt = "..." # constructs LLM Confidence Assessor Prompt
+        try:
+            result = self._score_with_llm(prompt)
+            return int(result["score"])
+        except Exception as e:
+            # Fallback: Deterministic math calculation
+            score = 0
+            if context["entities"]: score += 15
+            if context["metrics"]: score += 15
+            if len(context["entities"]) > 1 and context["relationships"]: score += 20
+            # Sim score + question understanding checks...
+            return score`,
+        java: `// Validation Scorer with Rule Book fallback
+public class ConfidenceEngine {
+    public int calculateScore(PipelineContext context) {
+        // Evaluate query completeness via rules or LLM evaluation
+    }
+}`
+      }
+    };
+
+    // Simulation Data Model
+    const simulationData = {
+      margin: {
+        query: "Product margin analysis",
+        analyzer: {
+          metrics: ["margin"],
+          entities: ["product"],
+          time_grain: null,
+          filters: []
+        },
+        lookup: {
+          matched_entities: [{ id: "e4", name: "Product" }],
+          matched_metrics: [{ id: "m3", name: "Margin", calc_type: "formula" }],
+          relationships: []
+        },
+        retrieve: [
+          {
+            rule: "Rule 2: Profit Margin",
+            content: "Profit Margin is calculated as (Revenue - Cost) / Revenue. It should always be represented as a percentage.",
+            similarity: 0.52
+          }
+        ],
+        context: {
+          entities: [{ id: "e4", name: "Product" }],
+          metrics: [{ id: "m3", name: "Margin", calc_type: "formula" }],
+          relationships: [],
+          business_rules: [
+            "Rule 2: Profit Margin\nProfit Margin is calculated as (Revenue - Cost) / Revenue. It should always be represented as a percentage."
+          ]
+        },
+        sql: "SELECT p.product_name, (SUM(o.net_amount - o.cost) / SUM(o.net_amount)) * 100 as profit_margin_pct\nFROM products p, orders o\nWHERE p.product_id = o.product_id\nGROUP BY p.product_name",
+        confidence: {
+          factors: {
+            "Metadata Match": 30,
+            "Relationship Match": 20,
+            "Similarity & Rules": 18,
+            "Question Understanding": 15
+          },
+          score: 83,
+          clarify: false
+        }
+      },
+      supplier: {
+        query: "Orders by supplier",
+        analyzer: {
+          metrics: ["orders"],
+          entities: ["supplier"],
+          time_grain: null,
+          filters: []
+        },
+        lookup: {
+          matched_entities: [{ id: "e8", name: "Supplier" }],
+          matched_metrics: [{ id: "m4", name: "OrderCount", calc_type: "count" }],
+          relationships: []
+        },
+        retrieve: [
+          {
+            rule: "Term: AOV",
+            content: "Definition: Average Order Value. Total revenue divided by the number of orders.",
+            similarity: 0.33
+          }
+        ],
+        context: {
+          entities: [{ id: "e8", name: "Supplier" }],
+          metrics: [{ id: "m4", name: "OrderCount", calc_type: "count" }],
+          relationships: [],
+          business_rules: [
+            "Term: AOV\nDefinition: Average Order Value. Total revenue divided by the number of orders."
+          ]
+        },
+        sql: "SELECT s.supplier_name, COUNT(o.order_id) as total_orders\nFROM suppliers s, orders o, products p\nWHERE p.product_id = o.product_id AND s.supplier_id = p.supplier_id\nGROUP BY s.supplier_name",
+        confidence: {
+          factors: {
+            "Metadata Match": 30,
+            "Relationship Match": 20,
+            "Similarity & Rules": 11,
+            "Question Understanding": 15
+          },
+          score: 76,
+          clarify: false
+        }
+      },
+      warehouse: {
+        query: "Sales by warehouse",
+        analyzer: {
+          metrics: ["sales"],
+          entities: ["warehouse"],
+          time_grain: null,
+          filters: []
+        },
+        lookup: {
+          matched_entities: [{ id: "e7", name: "Warehouse" }],
+          matched_metrics: [{ id: "m1", name: "Revenue", calc_type: "sum" }],
+          relationships: []
+        },
+        retrieve: [
+          {
+            rule: "Rule 4: Top Customers",
+            content: "When calculating 'Top Customers', always sort by Revenue descending unless specified otherwise.",
+            similarity: 0.31
+          }
+        ],
+        context: {
+          entities: [{ id: "e7", name: "Warehouse" }],
+          metrics: [{ id: "m1", name: "Revenue", calc_type: "sum" }],
+          relationships: [],
+          business_rules: [
+            "Rule 4: Top Customers\nWhen calculating 'Top Customers', always sort by Revenue descending unless specified otherwise."
+          ]
+        },
+        sql: "SELECT w.warehouse_name, SUM(o.net_amount) as total_revenue\nFROM warehouses w, orders o\nWHERE w.warehouse_id = o.warehouse_id\nGROUP BY w.warehouse_name",
+        confidence: {
+          factors: {
+            "Metadata Match": 30,
+            "Relationship Match": 20,
+            "Similarity & Rules": 10,
+            "Question Understanding": 15
+          },
+          score: 75,
+          clarify: false
+        }
+      },
+      revenue: {
+        query: "Show monthly revenue by customer",
+        analyzer: {
+          metrics: ["revenue"],
+          entities: ["customer"],
+          time_grain: "monthly",
+          filters: []
+        },
+        lookup: {
+          matched_entities: [{ id: "e1", name: "Customer" }],
+          matched_metrics: [{ id: "m1", name: "Revenue", calc_type: "sum" }],
+          relationships: []
+        },
+        retrieve: [
+          {
+            rule: "Rule 1: Revenue Calculation",
+            content: "Revenue should always be calculated using the net amount after discounts...",
+            similarity: 0.48
+          }
+        ],
+        context: {
+          entities: [{ id: "e1", name: "Customer" }],
+          metrics: [{ id: "m1", name: "Revenue", calc_type: "sum" }],
+          relationships: [],
+          business_rules: [
+            "Rule 1: Revenue Calculation\nRevenue should always be calculated using the net amount after discounts. Do not include taxes in the revenue calculation."
+          ]
+        },
+        sql: "SELECT DATE_TRUNC('month', o.order_date) as order_month, c.customer_name, SUM(o.net_amount) as total_revenue\nFROM customers c, orders o\nWHERE c.customer_id = o.customer_id\nGROUP BY DATE_TRUNC('month', o.order_date), c.customer_name",
+        confidence: {
+          factors: {
+            "Metadata Match": 30,
+            "Relationship Match": 20,
+            "Similarity & Rules": 14,
+            "Question Understanding": 15
+          },
+          score: 79,
+          clarify: false
+        }
+      },
+      growth: {
+        query: "Customer growth trend",
+        analyzer: {
+          metrics: [],
+          entities: ["customer"],
+          time_grain: null,
+          filters: []
+        },
+        lookup: {
+          matched_entities: [{ id: "e1", name: "Customer" }],
+          matched_metrics: [],
+          relationships: []
+        },
+        retrieve: [
+          {
+            rule: "Term: Churn",
+            content: "Definition: The rate at which customers stop doing business with an entity.",
+            similarity: 0.42
+          }
+        ],
+        context: {
+          entities: [{ id: "e1", name: "Customer" }],
+          metrics: [],
+          relationships: [],
+          business_rules: [
+            "Term: Churn\nDefinition: The rate at which customers stop doing business with an entity."
+          ]
+        },
+        sql: "SELECT c.customer_name\nFROM customers c\nGROUP BY c.customer_name",
+        confidence: {
+          factors: {
+            "Metadata Match": 15,
+            "Relationship Match": 20,
+            "Similarity & Rules": 14,
+            "Question Understanding": 15
+          },
+          score: 64,
+          clarify: true,
+          clarification_details: "- Which specific metric are you looking for? (e.g., Gross Revenue, Net Revenue, Profit?)"
+        }
+      }
+    };
+
+    let activeStep = 'init';
+    let activeSubTab = 'log';
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      
+      const targetBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => {
+        const onclickAttr = btn.getAttribute('onclick');
+        return onclickAttr && onclickAttr.includes(tabId);
+      });
+      if (targetBtn) targetBtn.classList.add('active');
+      
+      document.getElementById(`tab-${tabId}`).classList.add('active');
+    }
+
+    function switchSubTab(subTabId) {
+      activeSubTab = subTabId;
+      document.querySelectorAll('.sub-tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(`subtab-btn-${subTabId}`).classList.add('active');
+      runSimulation();
+    }
+
+    function setStep(stepId) {
+      activeStep = stepId;
+      document.querySelectorAll('.flow-step-node').forEach(node => node.classList.remove('active'));
+      document.getElementById(`step-node-${stepId}`).classList.add('active');
+      runSimulation();
+    }
+
+    // Escape code snippets for HTML
+    function escapeHtml(text) {
+      return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function runSimulation() {
+      const qKey = document.getElementById('querySelect').value;
+      const data = simulationData[qKey];
+      const consoleDisplay = document.getElementById('console-display');
+      
+      let html = `<div class="console-header">
+        <span>STAGE: ${activeStep.toUpperCase()} | VIEW: ${activeSubTab.toUpperCase()}</span>
+        <span>STATUS: EXECUTING</span>
+      </div>`;
+
+      // Render Console Logs Tab
+      if (activeSubTab === 'log') {
+        if (activeStep === 'init') {
+          html += `<span class="console-comment"># Initializing metadata store and caching semantic rules</span>\n`;
+          html += `>>> <span class="console-accent">phase1_ingestion.loaders.metadata_loader.setup_database("db/metadata.db", "metadata")</span>\n`;
+          html += `[SQLite] Loaded 8 records into <span class="console-string">semantic_entities</span>\n`;
+          html += `[SQLite] Loaded 6 records into <span class="console-string">semantic_metrics</span>\n`;
+          html += `[SQLite] Loaded 5 records into <span class="console-string">semantic_relationships</span>\n`;
+          html += `[SQLite] Loaded 10 records into <span class="console-string">semantic_source_mappings</span>\n`;
+          html += `[SQLite] Loaded 5 records into <span class="console-string">semantic_metric_mappings</span>\n`;
+          html += `[SQLite] Database initialization complete.\n\n`;
+          html += `>>> <span class="console-accent">phase1_ingestion.embeddings.embedder.Embedder("vector_store")</span>\n`;
+          html += `[ChromaDB] Embedder initialized. Model: <span class="console-string">all-MiniLM-L6-v2</span> | Dimensions: <span class="console-keyword">384</span>\n`;
+          html += `[ChromaDB] Collection size: <span class="console-keyword">11 documents</span>\n`;
+          html += `[ChromaDB] Vector index populated and ready for semantic retrieval.\n`;
+          html += `<span class="console-comment">(Note: If ChromaDB or PyTorch initialization fails, Embedder falls back to simulation mode)</span>`;
+        } 
+        else if (activeStep === 'analyze') {
+          html += `<span class="console-comment"># Parsing natural language query into structural categories</span>\n`;
+          html += `>>> <span class="console-accent">phase2_retrieval.analyzer.nlp_analyzer.NLPAnalyzer().analyze("${data.query}")</span>\n\n`;
+          html += `<span class="console-comment">--- [LLM Query Planner Prompt Template] ---</span>\n`;
+          html += `<span class="console-comment">You are a Data Warehouse NLP Planner. Extract metrics, entities, time grains...\n`;
+          html += `Allowed metrics: ['revenue', 'profit', 'margin', 'orders', 'customers', 'sales', 'aov']\n`;
+          html += `Allowed entities: ['customer', 'region', 'product', 'supplier', 'warehouse']\n`;
+          html += `User Question: "${data.query}"</span>\n`;
+          html += `<span class="console-comment">-------------------------------------------</span>\n`;
+          html += `[LLM Parser] Fallback triggered: No LLM API keys found (OPENAI_API_KEY or GOOGLE_API_KEY).\n`;
+          html += `[LLM Parser] Executing local deterministic parser...\n\n`;
+          html += `<span class="console-keyword">Extracted tokens payload:</span>\n`;
+          html += JSON.stringify(data.analyzer, null, 2);
+        } 
+        else if (activeStep === 'lookup') {
+          html += `<span class="console-comment"># Querying SQLite tables to match tokens against schema vocabulary</span>\n`;
+          html += `>>> <span class="console-accent">phase2_retrieval.metadata_lookup.lookup_engine.LookupEngine("db/metadata.db").lookup(...)</span>\n\n`;
+          html += `<span class="console-comment"># If database file is missing or locked:</span>\n`;
+          html += `[Lookup Engine] SQLite lookup failed: (Simulated SQLite operational error)\n`;
+          html += `[Lookup Engine] Fallback triggered. Executing local CSV metadata lookup...\n`;
+          html += `--- Metadata Lookup (Local Fallback) ---\n`;
+          html += `<span class="console-keyword">Matched Database Schema details:</span>\n`;
+          html += JSON.stringify(data.lookup, null, 2);
+        } 
+        else if (activeStep === 'retrieve') {
+          html += `<span class="console-comment"># Running vector search inside ChromaDB for business rules</span>\n`;
+          html += `>>> <span class="console-accent">phase2_retrieval.retrieval.rag_retriever.RAGRetriever("vector_store").retrieve("${data.query}")</span>\n\n`;
+          html += `[RAG Retriever] Fallback triggered: (Simulated embedding/ChromaDB exception or fallback mode active)\n`;
+          html += `[RAG Retriever] Executing local keyword-overlap retriever...\n`;
+          html += `--- RAG Retrieval (Local Fallback) ---\n`;
+          if (data.retrieve.length === 0) {
+            html += `Local overlap retriever returned <span class="console-keyword">0 results</span>.`;
+          } else {
+            data.retrieve.forEach((item, index) => {
+              html += `<span class="console-accent">Chunk ${index + 1}:</span>\n`;
+              html += `  Overlap Score:  <span class="console-keyword">${item.similarity}</span>\n`;
+              html += `  Sim BM25 Score: <span class="console-keyword">${(item.similarity * 0.9).toFixed(2)}</span>\n`;
+              html += `  Final Score:   <span class="console-keyword">${((item.similarity * 0.7) + (item.similarity * 0.9 * 0.3)).toFixed(2)}</span>\n`;
+              html += `  Content: "${item.content.substring(0, 120)}..."\n\n`;
+            });
+          }
+        } 
+        else if (activeStep === 'context') {
+          html += `<span class="console-comment"># Building payload by merging schema mappings and unstructured business rules</span>\n`;
+          html += `>>> <span class="console-accent">phase2_retrieval.context_builder.builder.ContextBuilder().build_context(...)</span>\n\n`;
+          html += `<span class="console-keyword">Constructed context object:</span>\n`;
+          html += JSON.stringify(data.context, null, 2);
+        } 
+        else if (activeStep === 'generate') {
+          html += `<span class="console-comment"># Generating final SQL query using LLM or local templates</span>\n`;
+          html += `>>> <span class="console-accent">phase2_retrieval.sql_generator.generator.SQLGenerator().generate(context, extracted)</span>\n\n`;
+          html += `<span class="console-comment">--- [LLM SQL Generator Prompt Template] ---</span>\n`;
+          html += `<span class="console-comment">You are a SQL Expert for an ANSI-compliant Data Warehouse. Generate an ANSI SQL query...\n`;
+          html += `Database Context: Matched Entities: ${JSON.stringify(data.context.entities)}...\n`;
+          html += `Retrieved Semantic Business Rules: ${JSON.stringify(data.context.business_rules)}...\n`;
+          html += `User Question: "${data.query}"</span>\n`;
+          html += `<span class="console-comment">--------------------------------------------</span>\n`;
+          html += `[LLM Generator] Fallback triggered: No LLM API keys found (OPENAI_API_KEY or GOOGLE_API_KEY).\n`;
+          html += `[LLM Generator] Executing local template-based SQL generator...\n`;
+          html += `--- Generated SQL (Deterministic Fallback) ---\n\n`;
+          html += `<span style="color: #ff9e64; font-weight: bold;">${data.sql}</span>`;
+        } 
+        else if (activeStep === 'score') {
+          html += `<span class="console-comment"># Scoring pipeline confidence and checking if clarification is required</span>\n`;
+          html += `>>> <span class="console-accent">phase2_retrieval.confidence.scorer.ConfidenceScorer().calculate_score(...)</span>\n\n`;
+          html += `<span class="console-comment">--- [LLM Confidence Prompt Template] ---</span>\n`;
+          html += `<span class="console-comment">You are a Data Warehouse NLP Confidence Assessor. Assess the confidence score...\n`;
+          html += `Extracted Intent: Metrics: ${JSON.stringify(data.analyzer.metrics)}, Entities: ${JSON.stringify(data.analyzer.entities)}</span>\n`;
+          html += `<span class="console-comment">-----------------------------------------</span>\n`;
+          html += `[LLM Confidence Engine] Fallback triggered: No LLM API keys found.\n`;
+          html += `[LLM Confidence Engine] Executing local rule-based confidence scorer...\n`;
+          html += `--- Confidence Engine (Deterministic Fallback) ---\n`;
+          Object.entries(data.confidence.factors).forEach(([factor, score]) => {
+            html += `  ${factor}: <span class="console-keyword">${score}</span>\n`;
+          });
+          html += `  Total Confidence Score: <span class="console-accent">${data.confidence.score}/100</span>\n\n`;
+          
+          html += `>>> <span class="console-accent">phase2_retrieval.confidence.scorer.ClarificationEngine().check_needs_clarification(...)</span>\n`;
+          if (data.confidence.clarify) {
+            html += `<span style="color: var(--accent); font-weight: bold;">[CLARIFICATION REQUIRED]</span> Confidence is below 70.\n`;
+            html += `Clarification details printed to user:\n`;
+            html += `<span class="console-string">${data.confidence.clarification_details}</span>`;
+          } else {
+            html += `<span style="color: #9ece6a; font-weight: bold;">[NO CLARIFICATION NEEDED]</span> Confidence satisfies threshold (>= 70).`;
+          }
+        }
+      } 
+      // Render Python Code Tab
+      else if (activeSubTab === 'py') {
+        html += `<span class="console-comment"># Python code executing in this step</span>\n\n`;
+        html += escapeHtml(codeSnippets[activeStep].py);
+      } 
+      // Render Java Analogy Tab
+      else if (activeSubTab === 'java') {
+        html += `<span class="console-comment"># Java equivalents & Spring/Hibernate analogies</span>\n\n`;
+        html += escapeHtml(codeSnippets[activeStep].java);
+      }
+
+      consoleDisplay.innerHTML = html.replace(/\n/g, '<br>');
+    }
+
+    // Run simulation on load
+    window.onload = function() {
+      runSimulation();
+    };
+  </script>
+</body>
+</html>

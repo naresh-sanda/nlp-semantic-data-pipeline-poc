@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vector Distance Metrics Guide — NLP Pipeline</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0f111a;
+      --bg-card: rgba(30, 34, 51, 0.6);
+      --bg-nav: #141824;
+      --primary: #8257e5;
+      --primary-glow: rgba(130, 87, 229, 0.4);
+      --secondary: #00f2fe;
+      --secondary-glow: rgba(0, 242, 254, 0.3);
+      --accent: #ff007f;
+      --text-main: #f8f8f2;
+      --text-muted: #8b949e;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --green: #50fa7b;
+      --orange: #ffb86c;
+      --red: #ff5555;
+      --blue-l2: #6272a4;
+      --green-cos: #50fa7b;
+      --red-ip: #ff79c6;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.7;
+    }
+
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-dark); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+    /* ─── Header ─── */
+    header {
+      background: linear-gradient(135deg, #141824 0%, #1e2233 100%);
+      border-bottom: 1px solid var(--border-color);
+      padding: 2rem 3rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle at 30% 50%, var(--primary-glow) 0%, transparent 50%),
+                  radial-gradient(circle at 70% 50%, var(--secondary-glow) 0%, transparent 50%);
+      opacity: 0.3;
+      animation: headerPulse 8s ease-in-out infinite alternate;
+    }
+    @keyframes headerPulse {
+      0% { transform: scale(1) rotate(0deg); }
+      100% { transform: scale(1.1) rotate(3deg); }
+    }
+    header h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      position: relative;
+      z-index: 1;
+      background: linear-gradient(135deg, var(--secondary), var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    header p {
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      position: relative;
+      z-index: 1;
+      font-size: 1.05rem;
+    }
+
+    /* ─── Navigation ─── */
+    .nav-bar {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      padding: 1rem 2rem;
+      background: var(--bg-nav);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .nav-bar a {
+      color: var(--text-muted);
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.3s;
+      border: 1px solid transparent;
+    }
+    .nav-bar a:hover {
+      color: var(--secondary);
+      background: rgba(0, 242, 254, 0.08);
+      border-color: rgba(0, 242, 254, 0.2);
+    }
+    .nav-bar a.doc-link {
+      color: var(--orange);
+      border: 1px solid rgba(255, 184, 108, 0.3);
+    }
+    .nav-bar a.doc-link:hover {
+      background: rgba(255, 184, 108, 0.1);
+      color: #fff;
+    }
+
+    /* ─── Main Layout ─── */
+    main {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    /* ─── Sections ─── */
+    .section {
+      margin-bottom: 3rem;
+      animation: fadeUp 0.6s ease-out both;
+    }
+    .section:nth-child(2) { animation-delay: 0.1s; }
+    .section:nth-child(3) { animation-delay: 0.2s; }
+    .section:nth-child(4) { animation-delay: 0.3s; }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--primary);
+      display: inline-block;
+    }
+    h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin: 1.5rem 0 0.8rem;
+      color: var(--secondary);
+    }
+
+    p { margin-bottom: 1rem; color: var(--text-muted); }
+    strong { color: var(--text-main); }
+
+    /* ─── Cards ─── */
+    .metric-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      margin: 1.5rem 0;
+    }
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.5rem;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .metric-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+    }
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+    }
+    .metric-card.l2::before { background: linear-gradient(90deg, #6272a4, #8be9fd); }
+    .metric-card.cosine::before { background: linear-gradient(90deg, #50fa7b, #00f2fe); }
+    .metric-card.ip::before { background: linear-gradient(90deg, #ff79c6, #ff5555); }
+
+    .metric-card .icon { font-size: 2rem; margin-bottom: 0.5rem; }
+    .metric-card h4 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .metric-card.l2 h4 { color: #8be9fd; }
+    .metric-card.cosine h4 { color: var(--green); }
+    .metric-card.ip h4 { color: #ff79c6; }
+
+    .metric-card .tagline {
+      font-style: italic;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.8rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .metric-card ul { list-style: none; padding: 0; }
+    .metric-card li {
+      padding: 0.3rem 0;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    .metric-card li::before {
+      content: '→ ';
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    /* ─── Analogy Boxes ─── */
+    .analogy {
+      background: rgba(130, 87, 229, 0.08);
+      border-left: 4px solid var(--primary);
+      border-radius: 0 12px 12px 0;
+      padding: 1.2rem 1.5rem;
+      margin: 1rem 0;
+    }
+    .analogy .label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+    .analogy p { color: var(--text-main); margin-bottom: 0; }
+
+    /* ─── Code Blocks ─── */
+    pre {
+      background: #1a1e2e;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.2rem 1.5rem;
+      overflow-x: auto;
+      margin: 1rem 0;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+      position: relative;
+    }
+    pre .label {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.8rem;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.05);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+    }
+    .kw { color: #ff79c6; }
+    .fn { color: #50fa7b; }
+    .str { color: #f1fa8c; }
+    .num { color: #bd93f9; }
+    .comment { color: #6272a4; }
+    .added { color: #50fa7b; background: rgba(80,250,123,0.08); display: inline-block; width: 100%; }
+    .removed { color: #ff5555; background: rgba(255,85,85,0.08); display: inline-block; width: 100%; text-decoration: line-through; }
+
+    /* ─── Visual Diagrams ─── */
+    .diagram-box {
+      background: #1a1e2e;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 2rem;
+      margin: 1.5rem 0;
+      text-align: center;
+    }
+    .diagram-box .title {
+      font-weight: 700;
+      color: var(--secondary);
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Vector Visualization */
+    .vector-viz {
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      flex-wrap: wrap;
+      margin: 1rem 0;
+    }
+    .vector-scenario {
+      text-align: center;
+    }
+    .vector-scenario svg { display: block; margin: 0 auto 0.5rem; }
+    .vector-scenario .caption {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .vector-scenario .score {
+      font-family: 'Fira Code', monospace;
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-top: 0.3rem;
+    }
+    .vector-scenario .score.good { color: var(--green); }
+    .vector-scenario .score.bad { color: var(--red); }
+
+    /* ─── Comparison Table ─── */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+    th {
+      background: rgba(130, 87, 229, 0.15);
+      color: var(--secondary);
+      font-weight: 600;
+      text-align: left;
+      padding: 0.8rem 1rem;
+      border-bottom: 2px solid var(--primary);
+    }
+    td {
+      padding: 0.7rem 1rem;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-muted);
+    }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    td:first-child { color: var(--text-main); font-weight: 500; }
+
+    /* ─── Verdict Box ─── */
+    .verdict {
+      background: linear-gradient(135deg, rgba(80,250,123,0.08), rgba(0,242,254,0.08));
+      border: 2px solid rgba(80,250,123,0.3);
+      border-radius: 16px;
+      padding: 2rem;
+      margin: 2rem 0;
+      position: relative;
+    }
+    .verdict::before {
+      content: '✅ VERDICT';
+      position: absolute;
+      top: -12px;
+      left: 24px;
+      background: var(--bg-dark);
+      padding: 0 0.8rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--green);
+    }
+    .verdict h3 { color: var(--green); margin-top: 0; }
+    .verdict p { color: var(--text-main); }
+
+    /* ─── Warning Box ─── */
+    .warning {
+      background: rgba(255, 184, 108, 0.08);
+      border: 1px solid rgba(255, 184, 108, 0.3);
+      border-radius: 12px;
+      padding: 1.2rem 1.5rem;
+      margin: 1rem 0;
+    }
+    .warning::before {
+      content: '⚠️ ';
+    }
+    .warning strong { color: var(--orange); }
+
+    /* ─── Tip Box ─── */
+    .tip {
+      background: rgba(0, 242, 254, 0.06);
+      border: 1px solid rgba(0, 242, 254, 0.2);
+      border-radius: 12px;
+      padding: 1.2rem 1.5rem;
+      margin: 1rem 0;
+    }
+    .tip::before { content: '💡 '; }
+    .tip strong { color: var(--secondary); }
+
+    /* ─── Decision Tree ─── */
+    .decision-tree {
+      background: #1a1e2e;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.5rem 2rem;
+      margin: 1.5rem 0;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      line-height: 2;
+    }
+    .decision-tree .q { color: var(--orange); font-weight: 700; }
+    .decision-tree .yes { color: var(--green); }
+    .decision-tree .no { color: var(--red); }
+    .decision-tree .answer { color: var(--secondary); font-weight: 700; }
+    .decision-tree .highlight { 
+      background: rgba(80,250,123,0.15); 
+      padding: 0.1rem 0.4rem; 
+      border-radius: 4px; 
+      border: 1px solid rgba(80,250,123,0.3);
+    }
+
+    /* ─── Flow Diagram ─── */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 1.5rem 0;
+    }
+    .flow-step {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 0.8rem 1.2rem;
+      text-align: center;
+      min-width: 120px;
+      transition: all 0.3s;
+    }
+    .flow-step:hover { border-color: var(--primary); transform: scale(1.05); }
+    .flow-step .step-num {
+      font-size: 0.65rem;
+      color: var(--primary);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .flow-step .step-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-top: 0.2rem;
+    }
+    .flow-step .step-detail {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+    .flow-step.highlight-step {
+      border-color: var(--green);
+      box-shadow: 0 0 20px rgba(80,250,123,0.15);
+    }
+    .flow-arrow {
+      color: var(--text-muted);
+      font-size: 1.4rem;
+      padding: 0 0.3rem;
+    }
+
+    /* ─── File Links ─── */
+    a.file-link {
+      color: var(--secondary);
+      text-decoration: none;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      padding: 0.2rem 0.5rem;
+      background: rgba(0, 242, 254, 0.06);
+      border: 1px solid rgba(0, 242, 254, 0.15);
+      border-radius: 6px;
+      transition: all 0.3s;
+      white-space: nowrap;
+    }
+    a.file-link:hover {
+      background: rgba(0, 242, 254, 0.12);
+      border-color: var(--secondary);
+      box-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+    }
+
+    /* ─── Number Walkthrough ─── */
+    .number-walk {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 0.3rem 1.2rem;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      padding: 1rem 0;
+    }
+    .number-walk .label-col { color: var(--text-muted); text-align: right; white-space: nowrap; }
+    .number-walk .value-col { color: var(--text-main); }
+    .number-walk .result { color: var(--green); font-weight: 700; }
+    .number-walk .result-bad { color: var(--red); font-weight: 700; }
+
+    /* ─── Footer ─── */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      border-top: 1px solid var(--border-color);
+      margin-top: 2rem;
+    }
+    footer a { color: var(--primary); text-decoration: none; }
+    footer a:hover { color: var(--secondary); }
+  </style>
+</head>
+<body>
+
+  <!-- ─── Header ─── -->
+  <header>
+    <h1>📐 Vector Distance Metrics Guide</h1>
+    <p>Understanding L2, Cosine & Inner Product — for the NLP Semantic Data Pipeline</p>
+    <div class="author-badge" style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-muted); display: flex; gap: 1.5rem; justify-content: center; align-items: center; opacity: 0.85; position: relative; z-index: 2;">
+      <span>👤 <strong>Naresh Sanda</strong> (Technical Architect)</span>
+      <span style="color: rgba(255,255,255,0.15)">|</span>
+      <span>📧 <a href="mailto:nareshkumar.sanda@gmail.com" style="color: var(--secondary); text-decoration: none;">nareshkumar.sanda@gmail.com</a></span>
+    </div>
+  </header>
+
+  <!-- ─── Navigation ─── -->
+  <nav class="nav-bar">
+    <a href="#big-picture">Big Picture</a>
+    <a href="#three-rulers">The Three Metrics</a>
+    <a href="#numbers">Real Numbers</a>
+    <a href="#comparison">Comparison</a>
+    <a href="#our-pipeline">Our Pipeline</a>
+    <a href="#code-location">In Our Code</a>
+    <a href="#data-flow">Data Flow</a>
+    <a href="#decision">Decision Guide</a>
+    <a href="index.html" class="doc-link">🏠 Portal Home</a>
+    <a href="execution_flow.html" class="doc-link">📄 Pipeline Simulator</a>
+    <a href="rag_deep_dive.html" class="doc-link">🔬 RAG Deep Dive</a>
+  </nav>
+
+  <main>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- Section 1: Big Picture                                  -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="section" id="big-picture">
+      <h2>🎯 The Big Picture</h2>
+      <p>
+        When a user types <strong>"Show monthly revenue by customer"</strong>, your pipeline needs to find the most relevant business rules and glossary entries from ChromaDB. But computers don't understand English — they understand <strong>numbers</strong>.
+      </p>
+      <p>
+        The embedding model (<strong>all-MiniLM-L6-v2</strong>) converts every piece of text into a list of <strong>384 numbers</strong> called a <strong>vector</strong>. The question then becomes:
+      </p>
+      <p style="text-align:center; font-size:1.3rem; color:var(--secondary); font-weight:700; margin: 1.5rem 0;">
+        "Which stored vectors are <em>closest</em> to the query vector?"
+      </p>
+      <p>
+        <strong>"Closest"</strong> is where the distance metric comes in — it's the <strong>ruler</strong> you use to measure how similar two vectors are. There are three common rulers, and each measures "closeness" differently.
+      </p>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- Section 2: The Three Rulers                             -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="section" id="three-rulers">
+      <h2>📏 The Three Rulers</h2>
+
+      <div class="metric-cards">
+        <!-- L2 Card -->
+        <div class="metric-card l2">
+          <div class="icon">🔵</div>
+          <h4>Squared L2 (Euclidean)</h4>
+          <div class="tagline">"Straight-Line Distance"</div>
+          <ul>
+            <li>Measures physical distance between two points</li>
+            <li>Lower value = more similar</li>
+            <li>Range: 0 (identical) → ∞ (very different)</li>
+            <li>Cares about vector <strong>magnitude</strong> (length)</li>
+            <li>ChromaDB's <strong>default</strong> metric</li>
+          </ul>
+        </div>
+
+        <!-- Cosine Card -->
+        <div class="metric-card cosine">
+          <div class="icon">🟢</div>
+          <h4>Cosine Similarity</h4>
+          <div class="tagline">"Direction, Not Distance"</div>
+          <ul>
+            <li>Measures the <strong>angle</strong> between two directions</li>
+            <li>Lower distance = more similar</li>
+            <li>Range: 0 (identical) → 2 (opposite)</li>
+            <li><strong>Ignores</strong> magnitude (text length)</li>
+            <li>Industry standard for RAG pipelines</li>
+          </ul>
+        </div>
+
+        <!-- Inner Product Card -->
+        <div class="metric-card ip">
+          <div class="icon">🔴</div>
+          <h4>Inner Product (Dot Product)</h4>
+          <div class="tagline">"Direction × Confidence"</div>
+          <ul>
+            <li>Measures direction AND magnitude combined</li>
+            <li>Higher value = more similar</li>
+            <li>Range: -∞ → +∞</li>
+            <li>Rewards both alignment and importance</li>
+            <li>Only use when model docs say to</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- ─── Analogies ─── -->
+      <h3>🏠 Library Analogy</h3>
+
+      <div class="analogy">
+        <div class="label">🔵 L2 — Straight-Line Distance</div>
+        <p>You're standing in a library. You measure the <strong>physical walking distance</strong> from you to each book on the shelves. The nearest book wins. But a book on a high shelf (long document = big vector) will seem "farther away" even if it's about the exact same topic.</p>
+      </div>
+
+      <div class="analogy">
+        <div class="label">🟢 Cosine — Direction Only</div>
+        <p>Instead of measuring walking distance, you stand at the center and <strong>point</strong> at each book. You measure the <strong>angle</strong> between your arm pointing at your topic and your arm pointing at each book. Smaller angle = more similar. It doesn't matter if the book is on a high shelf or low shelf — only the <strong>direction</strong> matters.</p>
+      </div>
+
+      <div class="analogy">
+        <div class="label">🔴 Inner Product — Direction × Popularity</div>
+        <p>Same as cosine (direction matters), but books that the library has <strong>more copies of</strong> (higher magnitude) get a bonus. Popular relevant books rank higher than obscure relevant books.</p>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- Section 3: See It In Numbers                            -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="section" id="numbers">
+      <h2>🔢 See It In Real Numbers</h2>
+      <p>Let's use tiny 3-number vectors to make this concrete. In reality your model uses 384 numbers, but the math works the same way.</p>
+
+      <div class="diagram-box">
+        <div class="title">Setup: One Query, Two Candidate Chunks</div>
+        <div class="number-walk">
+          <div class="label-col">Query vector:</div>
+          <div class="value-col">[0.8, 0.3, 0.1]  ← <span style="color:var(--secondary)">"revenue by customer"</span></div>
+          <div class="label-col">Book A vector:</div>
+          <div class="value-col">[0.7, 0.4, 0.2]  ← <span style="color:var(--green)">"Revenue is net amount after discounts"</span></div>
+          <div class="label-col">Book C vector:</div>
+          <div class="value-col">[0.1, 0.1, 0.9]  ← <span style="color:var(--red)">"Warehouse storage location"</span></div>
+        </div>
+      </div>
+
+      <h3>🔵 L2 Distance Calculation</h3>
+      <pre><span class="label">L2 MATH</span>
+<span class="comment">// For each pair of numbers: subtract, then square</span>
+
+<span class="comment">// Query → Book A (Revenue rule)</span>
+L2 = (<span class="num">0.8</span>-<span class="num">0.7</span>)² + (<span class="num">0.3</span>-<span class="num">0.4</span>)² + (<span class="num">0.1</span>-<span class="num">0.2</span>)²
+   = <span class="num">0.01</span> + <span class="num">0.01</span> + <span class="num">0.01</span> = <span class="fn">0.03</span>  ← <span class="comment">SMALL = similar! ✅</span>
+
+<span class="comment">// Query → Book C (Warehouse info)</span>
+L2 = (<span class="num">0.8</span>-<span class="num">0.1</span>)² + (<span class="num">0.3</span>-<span class="num">0.1</span>)² + (<span class="num">0.1</span>-<span class="num">0.9</span>)²
+   = <span class="num">0.49</span> + <span class="num">0.04</span> + <span class="num">0.64</span> = <span class="fn">1.17</span>  ← <span class="comment">BIG = not similar ❌</span></pre>
+
+      <h3>🟢 Why Cosine Handles Length Differences Better</h3>
+      <p>Now imagine Book A is a <strong>long document</strong> — its vector gets scaled up:</p>
+      <pre><span class="label">THE LENGTH PROBLEM</span>
+<span class="comment">// Same meaning, but the document is 3x longer</span>
+Query (short):      [<span class="num">0.8</span>, <span class="num">0.3</span>, <span class="num">0.1</span>]
+Book A (long doc):  [<span class="num">2.1</span>, <span class="num">1.2</span>, <span class="num">0.6</span>]  ← same direction, bigger numbers
+
+<span class="comment">// L2 says: FAR APART (bad!)</span>
+L2 = (<span class="num">0.8</span>-<span class="num">2.1</span>)² + (<span class="num">0.3</span>-<span class="num">1.2</span>)² + (<span class="num">0.1</span>-<span class="num">0.6</span>)²
+   = <span class="num">1.69</span> + <span class="num">0.81</span> + <span class="num">0.25</span> = <span class="fn">2.75</span>  ← <span class="comment">Seems far! ❌</span>
+
+<span class="comment">// Cosine says: SAME DIRECTION (correct!)</span>
+<span class="comment">// Both vectors point the same way, just different lengths</span>
+Cosine similarity = <span class="fn">0.98</span>  ← <span class="comment">Nearly identical meaning! ✅</span></pre>
+
+      <!-- Visual -->
+      <div class="diagram-box">
+        <div class="title">Visual: Why Cosine Ignores Length</div>
+        <div class="vector-viz">
+          <div class="vector-scenario">
+            <svg width="160" height="160" viewBox="0 0 160 160">
+              <defs>
+                <marker id="arrowQ" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#00f2fe"/></marker>
+                <marker id="arrowA" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#50fa7b"/></marker>
+              </defs>
+              <line x1="80" y1="140" x2="130" y2="50" stroke="#00f2fe" stroke-width="2.5" marker-end="url(#arrowQ)"/>
+              <line x1="80" y1="140" x2="145" y2="15" stroke="#50fa7b" stroke-width="2.5" stroke-dasharray="6,3" marker-end="url(#arrowA)"/>
+              <text x="135" y="55" fill="#00f2fe" font-size="11" font-family="Fira Code">Q</text>
+              <text x="148" y="18" fill="#50fa7b" font-size="11" font-family="Fira Code">A</text>
+              <!-- Angle arc -->
+              <path d="M 105 95 A 30 30 0 0 1 110 85" stroke="#ff79c6" stroke-width="1.5" fill="none"/>
+              <text x="108" y="75" fill="#ff79c6" font-size="10" font-family="Fira Code">5°</text>
+              <circle cx="80" cy="140" r="3" fill="#fff"/>
+            </svg>
+            <div class="caption">Query (short) → Book A (long)<br/>Same direction, different length</div>
+            <div class="score good">Cosine: 0.98 ✅</div>
+            <div class="score bad">L2: 2.75 (misleading!)</div>
+          </div>
+          <div class="vector-scenario">
+            <svg width="160" height="160" viewBox="0 0 160 160">
+              <defs>
+                <marker id="arrowQ2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#00f2fe"/></marker>
+                <marker id="arrowC" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ff5555"/></marker>
+              </defs>
+              <line x1="80" y1="140" x2="130" y2="50" stroke="#00f2fe" stroke-width="2.5" marker-end="url(#arrowQ2)"/>
+              <line x1="80" y1="140" x2="20" y2="50" stroke="#ff5555" stroke-width="2.5" marker-end="url(#arrowC)"/>
+              <text x="135" y="55" fill="#00f2fe" font-size="11" font-family="Fira Code">Q</text>
+              <text x="5" y="50" fill="#ff5555" font-size="11" font-family="Fira Code">C</text>
+              <!-- Angle arc -->
+              <path d="M 105 95 A 50 50 0 0 0 55 95" stroke="#ff79c6" stroke-width="1.5" fill="none"/>
+              <text x="70" y="80" fill="#ff79c6" font-size="10" font-family="Fira Code">75°</text>
+              <circle cx="80" cy="140" r="3" fill="#fff"/>
+            </svg>
+            <div class="caption">Query → Book C (Warehouse)<br/>Different direction entirely</div>
+            <div class="score bad">Cosine: 0.26 ❌</div>
+            <div class="score bad">L2: 1.17 ❌</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- Section 4: Comparison Table                             -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="section" id="comparison">
+      <h2>📊 Side-by-Side Comparison</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Feature</th>
+            <th>🔵 L2 (Euclidean)</th>
+            <th>🟢 Cosine</th>
+            <th>🔴 Inner Product</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Measures</td>
+            <td>Physical distance between points</td>
+            <td>Angle between directions</td>
+            <td>Direction × magnitude</td>
+          </tr>
+          <tr>
+            <td>Cares about text length?</td>
+            <td style="color:var(--red)">❌ Yes — penalizes size differences</td>
+            <td style="color:var(--green)">✅ No — ignores size</td>
+            <td style="color:var(--orange)">⚠️ Yes — rewards bigger magnitude</td>
+          </tr>
+          <tr>
+            <td>Output value</td>
+            <td>0 (identical) → ∞ (different)</td>
+            <td>0 (identical) → 2 (opposite)</td>
+            <td>-∞ → +∞ (higher = similar)</td>
+          </tr>
+          <tr>
+            <td>Best when</td>
+            <td>All chunks roughly equal size</td>
+            <td><strong>Short queries vs long docs</strong></td>
+            <td>Model docs say to use it</td>
+          </tr>
+          <tr>
+            <td>Speed</td>
+            <td>⚡ Fastest</td>
+            <td>⚡ Fast (nearly same as L2)</td>
+            <td>⚡ Fast</td>
+          </tr>
+          <tr>
+            <td>ChromaDB default?</td>
+            <td style="color:var(--green)">✅ Yes</td>
+            <td>No (must specify)</td>
+            <td>No (must specify)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- Section 5: Our Pipeline                                 -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="section" id="our-pipeline">
+      <h2>🔍 Which One Fits Our Pipeline?</h2>
+
+      <h3>Our Data Characteristics</h3>
+      <table>
+        <thead>
+          <tr><th>What</th><th>Example</th><th>Length</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>User query (short)</td>
+            <td style="color:var(--secondary)">"Show monthly revenue by customer"</td>
+            <td>~6 words</td>
+          </tr>
+          <tr>
+            <td>Business rule chunk</td>
+            <td style="color:var(--green)">"Rule 1: Revenue Calculation — Revenue should always be calculated using the net amount after discounts..."</td>
+            <td>~20-30 words</td>
+          </tr>
+          <tr>
+            <td>Glossary chunk</td>
+            <td style="color:var(--orange)">"Term: Churn — The rate at which customers stop doing business with an entity."</td>
+            <td>~15-20 words</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>The query is <strong>short</strong> (~6 words), while matching chunks are <strong>3-5x longer</strong>. With L2, the vectors would have different magnitudes, and L2 would think they're farther apart than they actually are. Cosine ignores this size difference.</p>
+
+      <!-- Verdict -->
+      <div class="verdict">
+        <h3>Use Cosine Similarity for Our Pipeline</h3>
+        <table>
+          <tbody>
+            <tr>
+              <td>Short queries vs. longer chunks</td>
+              <td>Cosine ignores magnitude — a 6-word query matches a 30-word rule perfectly</td>
+            </tr>
+            <tr>
+              <td>Our model (all-MiniLM-L6-v2)</td>
+              <td>Produces <strong>normalized vectors</strong> — cosine and L2 give equivalent rankings, but cosine scores are more readable</td>
+            </tr>
+            <tr>
+              <td>Mixed chunk sizes</td>
+              <td>Our metadata-aware chunker produces chunks of varying length</td>
+            </tr>
+            <tr>
+              <td>Industry standard</td>
+              <td>Almost all RAG pipelines use cosine similarity for text retrieval</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="tip">
+        <strong>About Normalized Vectors:</strong> <code>all-MiniLM-L6-v2</code> produces vectors where all magnitudes are exactly 1.0. When vectors are normalized, L2 and cosine give the <strong>same ranking</strong>. The practical benefit of cosine is that similarity scores are human-readable: <code>0.95</code> clearly means "95% similar", while an L2 distance of <code>0.31</code> doesn't tell you much without context.
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- Section 6: In Our Code                                  -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="section" id="code-location">
+      <h2>📁 Where This Lives In Our Code</h2>
+
+      <h3>Step 1: Collection is created in the Embedder</h3>
+      <p>File: <a class="file-link" href="src/phase1_ingestion/embeddings/embedder.py">embedder.py</a> — line 19</p>
+      <pre><span class="label">CURRENT CODE</span>
+<span class="comment"># Line 19 — THIS is where the distance metric is chosen</span>
+self.collection = self.client.get_or_create_collection(
+    name=<span class="str">"semantic_knowledge"</span>
+)
+<span class="comment"># ⚠️ No distance metric specified → ChromaDB defaults to L2!</span></pre>
+
+      <p>To use cosine instead:</p>
+      <pre><span class="label">RECOMMENDED CHANGE</span>
+self.collection = self.client.get_or_create_collection(
+    name=<span class="str">"semantic_knowledge"</span>,
+    <span class="added">metadata={<span class="str">"hnsw:space"</span>: <span class="str">"cosine"</span>}    <span class="comment"># ← sets the distance metric</span></span>
+)</pre>
+
+      <h3>Step 2: Query returns distances in the RAG Retriever</h3>
+      <p>File: <a class="file-link" href="src/phase2_retrieval/retrieval/rag_retriever.py">rag_retriever.py</a> — lines 34-44</p>
+      <pre><span class="label">CURRENT CODE</span>
+<span class="comment"># Lines 34-37 — ChromaDB returns results with distances</span>
+results = self.collection.query(
+    query_embeddings=query_embedding,
+    n_results=top_k + <span class="num">2</span>
+)
+
+<span class="comment"># Lines 41-44 — Converting distance to similarity</span>
+<span class="kw">for</span> doc, distance <span class="kw">in</span> zip(results[<span class="str">'documents'</span>][<span class="num">0</span>], results[<span class="str">'distances'</span>][<span class="num">0</span>]):
+    <span class="removed">    <span class="comment"># Currently: assumes L2 and approximates cosine</span></span>
+    <span class="removed">    similarity = max(0, 1 - (distance / 2))</span>
+    <span class="added">    <span class="comment"># With cosine space: distance = (1 - cosine_similarity)</span></span>
+    <span class="added">    similarity = max(0, 1 - distance)  <span class="comment"># Clean 0.0 → 1.0 range</span></span></pre>
+
+      <h3>What ChromaDB Returns</h3>
+      <table>
+        <thead>
+          <tr><th>Metric</th><th>What distances look like</th><th>How to read</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>🔵 L2 (current)</td>
+            <td><code>[0.35, 0.78, 1.45]</code></td>
+            <td>Lower = closer. Range: 0 → ∞. Not intuitive.</td>
+          </tr>
+          <tr>
+            <td>🟢 Cosine (recommended)</td>
+            <td><code>[0.05, 0.22, 0.67]</code></td>
+            <td>Lower = closer. <code>1 - 0.05 = 0.95</code> similarity. Very intuitive!</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="warning">
+        <strong>Important:</strong> If you switch the distance metric, you <strong>must delete the existing <code>vector_store/</code> folder</strong> and re-run Phase 1 ingestion. ChromaDB stores the metric choice at collection creation time and cannot change it afterwards.
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- Section 7: Data Flow                                    -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="section" id="data-flow">
+      <h2>🔄 Complete Data Flow — With Distance Metric</h2>
+      <p>Here's how a user query flows through the system, highlighting <strong>where the distance metric is used</strong>:</p>
+
+      <div class="flow">
+        <div class="flow-step">
+          <div class="step-num">Step 1</div>
+          <div class="step-label">User Query</div>
+          <div class="step-detail">"Show revenue by customer"</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-num">Step 2</div>
+          <div class="step-label">Embed Query</div>
+          <div class="step-detail">→ [0.82, 0.15, ..., 0.03]</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step highlight-step">
+          <div class="step-num">Step 3 ← HERE</div>
+          <div class="step-label">ChromaDB Search</div>
+          <div class="step-detail">Compare with COSINE</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-num">Step 4</div>
+          <div class="step-label">Rank Results</div>
+          <div class="step-detail">distance → similarity</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-num">Step 5</div>
+          <div class="step-label">Return Chunks</div>
+          <div class="step-detail">Top 3 best matches</div>
+        </div>
+      </div>
+
+      <div class="diagram-box">
+        <div class="title">What Happens Inside ChromaDB at Step 3</div>
+        <pre style="text-align:left; border:none; margin:0; background:transparent;">
+<span class="comment">// Stored chunks (embedded during Phase 1):</span>
+Chunk 1: [<span class="num">0.79</span>, <span class="num">0.18</span>, <span class="num">0.41</span>, ...] = <span class="str">"Revenue is net amount after discounts"</span>
+Chunk 2: [<span class="num">0.11</span>, <span class="num">0.65</span>, <span class="num">0.02</span>, ...] = <span class="str">"Churn: customers stop doing business"</span>
+Chunk 3: [<span class="num">0.12</span>, <span class="num">0.08</span>, <span class="num">0.89</span>, ...] = <span class="str">"Warehouse storage location"</span>
+
+<span class="comment">// Query vector arrives: [0.82, 0.15, 0.44, ...]</span>
+
+<span class="comment">// 🟢 ChromaDB calculates COSINE distance to each chunk:</span>
+Chunk 1 (Revenue):   cosine distance = <span class="fn">0.05</span>  → similarity = <span class="fn">0.95</span>  <span class="comment">← Winner!</span>
+Chunk 2 (Churn):     cosine distance = <span class="num">0.72</span>  → similarity = <span class="num">0.28</span>
+Chunk 3 (Warehouse): cosine distance = <span class="num">0.88</span>  → similarity = <span class="num">0.12</span>
+
+<span class="comment">// Returns: Chunk 1 first (highest similarity)</span></pre>
+      </div>
+
+      <h3>📂 Source Files in the Pipeline</h3>
+      <table>
+        <thead>
+          <tr><th>File</th><th>Role in Distance Metric</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a class="file-link" href="src/phase1_ingestion/embeddings/embedder.py">embedder.py</a></td>
+            <td>Creates the ChromaDB collection — <strong>this is where the metric is set</strong></td>
+          </tr>
+          <tr>
+            <td><a class="file-link" href="src/phase1_ingestion/chunking/chunker.py">chunker.py</a></td>
+            <td>Splits text into chunks — <strong>chunk size variation is why we need cosine</strong></td>
+          </tr>
+          <tr>
+            <td><a class="file-link" href="src/phase2_retrieval/retrieval/rag_retriever.py">rag_retriever.py</a></td>
+            <td>Queries ChromaDB and <strong>converts distance → similarity score</strong></td>
+          </tr>
+          <tr>
+            <td><a class="file-link" href="run_phase1_ingestion.py">run_phase1_ingestion.py</a></td>
+            <td>Runs the full ingestion — rebuilds vector_store when metric changes</td>
+          </tr>
+          <tr>
+            <td><a class="file-link" href="run_phase2_retrieval.py">run_phase2_retrieval.py</a></td>
+            <td>Runs retrieval demo — uses the chosen metric during search</td>
+          </tr>
+          <tr>
+            <td><a class="file-link" href="run_demo.py">run_demo.py</a></td>
+            <td>Full end-to-end demo — Phase 1 + Phase 2 combined</td>
+          </tr>
+          <tr>
+            <td><a class="file-link" href="execution_flow.html">execution_flow.html</a></td>
+            <td>Interactive pipeline simulator — visualizes the full data flow</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- Section 8: Decision Guide                               -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="section" id="decision">
+      <h2>🗺️ Quick Decision Guide</h2>
+      <p>Use this flowchart whenever you need to choose a distance metric for <strong>any</strong> vector search project:</p>
+
+      <div class="decision-tree">
+        <span class="q">Do your chunks vary significantly in length?</span><br>
+        ├── <span class="yes">YES</span> → <span class="answer highlight">Use Cosine ✅</span> <span class="comment">(← our case!)</span><br>
+        └── <span class="no">NO</span> (all chunks ~same size)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;├── <span class="q">Does your model documentation say to use Inner Product?</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;├── <span class="yes">YES</span> → <span class="answer">Use Inner Product</span><br>
+        &nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;└── <span class="no">NO</span> → <span class="answer">Use L2</span> (simplest, fastest)<br>
+        &nbsp;&nbsp;&nbsp;&nbsp;└── <span class="q">Not sure?</span> → <span class="answer">Use Cosine</span> (safest default)
+      </div>
+
+      <h3>Summary for Our Pipeline</h3>
+      <table>
+        <thead>
+          <tr><th>Question</th><th>Answer</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>What model do we use?</td>
+            <td><code>all-MiniLM-L6-v2</code> (384 dimensions, normalized output)</td>
+          </tr>
+          <tr>
+            <td>What does ChromaDB currently use?</td>
+            <td><strong>L2</strong> (default, no explicit config)</td>
+          </tr>
+          <tr>
+            <td>What should we use?</td>
+            <td style="color:var(--green); font-weight:700">Cosine (better for short queries vs. varied chunk sizes)</td>
+          </tr>
+          <tr>
+            <td>Will results change?</td>
+            <td>Rankings stay the same (normalized vectors), but scores become more readable</td>
+          </tr>
+          <tr>
+            <td>Where to change it?</td>
+            <td><a class="file-link" href="src/phase1_ingestion/embeddings/embedder.py">embedder.py</a> line 19 + <a class="file-link" href="src/phase2_retrieval/retrieval/rag_retriever.py">rag_retriever.py</a> line 44</td>
+          </tr>
+          <tr>
+            <td>Cost of switching?</td>
+            <td>Must delete <code>vector_store/</code> and re-run Phase 1</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+
+  <footer>
+    <p>NLP Semantic Data Pipeline — Vector Distance Metrics Guide</p>
+    <p>
+      <a href="execution_flow.html">Pipeline Simulator</a> &nbsp;|&nbsp;
+      <a href="src/phase1_ingestion/embeddings/embedder.py">Embedder Source</a> &nbsp;|&nbsp;
+      <a href="src/phase2_retrieval/retrieval/rag_retriever.py">RAG Retriever Source</a>
+    </p>
+  </footer>
+
+</body>
+</html>

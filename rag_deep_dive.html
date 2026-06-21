@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAG &amp; Vector Deep Dive - NLP Semantic Data Pipeline Builder</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0f111a;
+      --bg-card: rgba(30, 34, 51, 0.6);
+      --bg-nav: #141824;
+      --primary: #8257e5;
+      --primary-glow: rgba(130, 87, 229, 0.4);
+      --secondary: #00f2fe;
+      --secondary-glow: rgba(0, 242, 254, 0.3);
+      --accent: #ff007f;
+      --text-main: #f8f8f2;
+      --text-muted: #8b949e;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --java-orange: #f89820;
+      --python-blue: #306998;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-dark);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary);
+    }
+
+    header {
+      background-color: var(--bg-nav);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1.5rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, var(--secondary), var(--primary));
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-weight: 800;
+      font-size: 0.9rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      box-shadow: 0 4px 15px var(--secondary-glow);
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(to right, #ffffff, #a5b4fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      padding: 0.6rem 1.2rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.95rem;
+      transition: all 0.25s ease;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .tab-btn.active {
+      color: var(--secondary);
+      background: rgba(0, 242, 254, 0.08);
+      border-color: rgba(0, 242, 254, 0.2);
+    }
+
+    .back-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .back-btn:hover {
+      background: var(--primary);
+      box-shadow: 0 4px 15px var(--primary-glow);
+      border-color: transparent;
+    }
+
+    .container {
+      flex: 1;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.4s ease-out forwards;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .tab-content.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.8rem;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      position: relative;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--primary);
+    }
+
+    .card.phase1::before {
+      background: var(--secondary);
+    }
+
+    .card.phase2::before {
+      background: var(--accent);
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.75rem;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .badge.python {
+      background: rgba(48, 105, 152, 0.1);
+      color: #306998;
+      border: 1px solid rgba(48, 105, 152, 0.2);
+    }
+
+    .badge.java {
+      background: rgba(248, 152, 32, 0.1);
+      color: var(--java-orange);
+      border: 1px solid rgba(248, 152, 32, 0.2);
+    }
+
+    .badge.model {
+      background: rgba(130, 87, 229, 0.1);
+      color: #a5b4fc;
+      border: 1px solid rgba(130, 87, 229, 0.2);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    @media (max-width: 968px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Steps mapping flow chart visual */
+    .rag-flow-chart {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0,0,0,0.2);
+      border: 1px solid var(--border-color);
+      padding: 2rem;
+      border-radius: 8px;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .flow-node {
+      background: #1e2233;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+      flex: 1;
+      min-width: 200px;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      position: relative;
+    }
+
+    .flow-node.active-node {
+      border-color: var(--secondary);
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.15);
+    }
+
+    .flow-node-title {
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 0.25rem;
+      font-size: 0.95rem;
+    }
+
+    .flow-node-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .flow-arrow {
+      font-size: 1.5rem;
+      color: var(--primary);
+      font-weight: 800;
+    }
+
+    @media (max-width: 768px) {
+      .flow-arrow {
+        transform: rotate(90deg);
+        margin: 0.5rem auto;
+      }
+    }
+
+    pre {
+      background: #080a10;
+      padding: 1.2rem;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.8rem;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      line-height: 1.5;
+    }
+
+    .step-comparison {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .step-comparison {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .comp-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #141824;
+      border: 1px solid var(--border-color);
+      border-bottom: none;
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem;
+      border-top-left-radius: 6px;
+      border-top-right-radius: 6px;
+    }
+
+    .trace-card {
+      background: rgba(130, 87, 229, 0.05);
+      border: 1px solid rgba(130, 87, 229, 0.2);
+      border-radius: 8px;
+      padding: 1.2rem;
+      margin-top: 1rem;
+    }
+
+    .trace-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--secondary);
+      margin-bottom: 0.5rem;
+    }
+
+    .trace-step {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      padding-left: 1rem;
+      border-left: 2px solid rgba(255,255,255,0.1);
+      margin-bottom: 1rem;
+    }
+
+    .trace-step:last-child {
+      margin-bottom: 0;
+    }
+
+    .trace-step-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .trace-io {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.75rem;
+      background: #0b0d16;
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      color: #bb9af7;
+    }
+
+    .tag-container {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.8rem;
+    }
+
+    footer {
+      background-color: var(--bg-nav);
+      border-top: 1px solid var(--border-color);
+      padding: 1.5rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="logo-container">
+      <div class="logo-badge">NLP Pipeline Builder</div>
+      <div>
+        <h1>RAG &amp; Vector Deep Dive</h1>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem;">Comparing Ingestion &amp; Retrieval in Python/Java for NLP Semantic Data Pipeline Builder</p>
+        <div class="author-badge" style="font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 1rem; align-items: center; opacity: 0.85;">
+          <span>👤 <strong>Naresh Sanda</strong> (Technical Architect)</span>
+          <span style="color: rgba(255,255,255,0.15)">|</span>
+          <span>📧 <a href="mailto:nareshkumar.sanda@gmail.com" style="color: var(--secondary); text-decoration: none;">nareshkumar.sanda@gmail.com</a></span>
+        </div>
+      </div>
+    </div>
+    <div class="nav-tabs">
+      <a href="index.html" class="tab-btn" style="text-decoration: none; display: inline-flex; align-items: center;">← Home</a>
+      <button class="tab-btn active" onclick="switchTab('phase1')">Phase 1: Ingestion &amp; Storage</button>
+      <button class="tab-btn" onclick="switchTab('phase2')">Phase 2: Retrieval &amp; Generation</button>
+      <a href="execution_flow.html" class="tab-btn" style="text-decoration: none; border: 1px solid rgba(0, 242, 254, 0.2); background: rgba(0, 242, 254, 0.05); color: var(--secondary); display: inline-flex; align-items: center;">Execution Flow →</a>
+    </div>
+  </header>
+
+  <div class="container">
+    
+    <!-- Tab 1: Phase 1: Ingestion & Storage -->
+    <div id="tab-phase1" class="tab-content active">
+      
+      <!-- Top flow visualization -->
+      <div class="rag-flow-chart">
+        <div class="flow-node active-node">
+          <div class="flow-node-title">1. Raw Document</div>
+          <div class="flow-node-desc">semantic_business_rules.txt</div>
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node active-node">
+          <div class="flow-node-title">2. Text Chunker</div>
+          <div class="flow-node-desc">Splits on paragraph/rule headers</div>
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node active-node">
+          <div class="flow-node-title">3. Embedding Model</div>
+          <div class="flow-node-desc">Converts text into 384-dimension floats</div>
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node active-node">
+          <div class="flow-node-title">4. Vector DB</div>
+          <div class="flow-node-desc">Stores index in ChromaDB on disk</div>
+        </div>
+      </div>
+
+      <!-- Detail Card -->
+      <div class="card phase1">
+        <div class="card-title">🔬 Phase 1 Ingestion Details &amp; Libraries</div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+          <div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--secondary);">Python Implementation</h3>
+            <div class="tag-container">
+              <span class="badge python">python standard</span>
+              <span class="badge python">re regex</span>
+              <span class="badge model">SentenceTransformer (all-MiniLM-L6-v2)</span>
+              <span class="badge python">chromadb</span>
+            </div>
+            <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-muted); margin-bottom: 1rem;">
+              The ingestion workflow reads raw text files from disk. First, a local <strong>regex-based chunker</strong> splits the text using header boundary tokens. Then, the <strong>SentenceTransformer</strong> library loads the local <code>all-MiniLM-L6-v2</code> model to convert chunks into coordinates. Finally, the embedding vectors and original text documents are saved as a collection inside <strong>ChromaDB</strong>.
+            </p>
+          </div>
+          
+          <div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--java-orange);">Java Equivalent</h3>
+            <div class="tag-container">
+              <span class="badge java">LangChain4j Core</span>
+              <span class="badge java">DocumentSplitters</span>
+              <span class="badge model">AllMiniLmL6V2EmbeddingModel</span>
+              <span class="badge java">ChromaEmbeddingStore</span>
+            </div>
+            <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-muted); margin-bottom: 1rem;">
+              In Java, this ingestion flow maps cleanly to the <strong>LangChain4j</strong> library. Documents are parsed into <code>Document</code> wrappers, chunked using <code>DocumentSplitters</code> (such as a recursive splitter), embedded using an <code>EmbeddingModel</code> client (calling locally or an API), and stored in an instance of <code>EmbeddingStore</code> (like Chroma, Milvus, or Pgvector).
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Relational vs Vector Storage comparison -->
+      <div class="card secondary-accent" style="margin-top: 2rem;">
+        <div class="card-title">💾 Relational DB vs. Vector DB: Storage Comparison (Phase 1)</div>
+        <p style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.2rem; color: var(--text-muted);">
+          To store text in a regular database, you run an SQL INSERT statement. In a Vector Database, you insert the text document, its ID, optional metadata fields, <strong>and its generated embedding vector coordinates</strong>. The vector coordinates act as a semantic "index" that maps where the text fits in coordinate space.
+        </p>
+        <table class="compare-table" style="font-size: 0.85rem; margin-top: 1rem;">
+          <thead>
+            <tr>
+              <th style="width: 20%;">Concept</th>
+              <th style="width: 40%; color: var(--java-orange); font-weight: bold;">Relational DB (SQL DB)</th>
+              <th style="width: 40%; color: var(--secondary); font-weight: bold;">Vector DB (ChromaDB / Milvus)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Logical Container</strong></td>
+              <td><strong>Table</strong> (strict rows and columns)</td>
+              <td><strong>Collection</strong> (unstructured documents and indexes)</td>
+            </tr>
+            <tr>
+              <td><strong>Stored Records</strong></td>
+              <td><strong>Rows</strong> (standard columns like ID, content, type)</td>
+              <td><strong>Documents</strong> (ID + Text Document + Metadata + Embeddings Vector)</td>
+            </tr>
+            <tr>
+              <td><strong>Connection &amp; Hosting</strong></td>
+              <td>
+                <strong>TCP Server</strong> (e.g., Postgres / MySQL server running on port 5432) or <strong>In-Process File</strong> (SQLite file <code>sqlite3.connect("db.db")</code>).
+                <br><br>
+                In Java, you configure a <code>DataSource</code> connection pool (like HikariCP) using a JDBC URL:
+                <pre style="padding: 0.5rem; font-size: 0.72rem; background: #080a10; margin-top: 0.4rem;"><code>jdbc:postgresql://localhost:5432/db</code></pre>
+              </td>
+              <td>
+                Supports two main deployment structures:
+                <br><br>
+                <strong>1. Embedded Mode</strong>: Runs directly inside the application process (stores index files to disk).
+                <pre style="padding: 0.5rem; font-size: 0.72rem; background: #080a10; margin-top: 0.4rem;"><code># Embedded index engine (DUCkDB/Parquet):
+client = chromadb.PersistentClient(
+    path="vector_store"
+)</code></pre>
+                <strong>2. Server Mode</strong>: Connects via HTTP REST APIs to a remote vector database instance.
+                <pre style="padding: 0.5rem; font-size: 0.72rem; background: #080a10; margin-top: 0.4rem;"><code># Remote server (e.g., Docker container):
+client = chromadb.HttpClient(
+    host="localhost", port=8000
+)</code></pre>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Insertion Code</strong></td>
+              <td>
+                <pre style="padding: 0.5rem; font-size: 0.72rem; background: #080a10;"><code>INSERT INTO rules_table (
+    id, rule_name, content
+) VALUES (
+    'rule2', 
+    'Profit Margin', 
+    'Profit Margin is calculated...'
+);</code></pre>
+              </td>
+              <td>
+                <pre style="padding: 0.5rem; font-size: 0.72rem; background: #080a10;"><code># Inserts text content + generated float coordinates
+collection.add(
+    ids=["rule2"],
+    documents=["Profit Margin is calculated..."],
+    embeddings=[[-0.0418, 0.0823, ...]], # 384 coordinates
+    metadatas=[{"source": "rules.txt"}]
+)</code></pre>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Code Comparison -->
+      <div class="card">
+        <div class="card-title">🖥️ Phase 1 Code Comparison</div>
+        
+        <div class="step-comparison">
+          <!-- Python Chunk & Embed -->
+          <div>
+            <div class="comp-header">
+              <span>🐍 Python Code</span>
+              <span class="badge python">src/phase1_ingestion/embeddings/embedder.py</span>
+            </div>
+            <pre><code>import os
+import chromadb
+from sentence_transformers import SentenceTransformer
+
+# 1. Initialize DB and Model
+db_client = chromadb.PersistentClient(path="vector_store")
+collection = db_client.get_or_create_collection("knowledge")
+model = SentenceTransformer('all-MiniLM-L6-v2')
+
+# 2. Chunking & Encoding
+chunks = [
+  "Rule 1: Revenue post discounts...",
+  "Rule 2: Profit Margin calculations..."
+]
+embeddings = model.encode(chunks).tolist() # 384 dimensions
+
+# 3. Storage
+collection.add(
+    embeddings=embeddings,
+    documents=chunks,
+    ids=["id1", "id2"],
+    metadatas=[{"source": "rules"}, {"source": "rules"}]
+)</code></pre>
+          </div>
+
+          <!-- Java Chunk & Embed -->
+          <div>
+            <div class="comp-header">
+              <span>☕ Java Code (LangChain4j)</span>
+              <span class="badge java">IngestionPipeline.java</span>
+            </div>
+            <pre><code>import dev.langchain4j.data.document.Document;
+import dev.langchain4j.data.document.splitter.DocumentSplitters;
+import dev.langchain4j.model.embedding.AllMiniLmL6V2EmbeddingModel;
+import dev.langchain4j.store.embedding.chroma.ChromaEmbeddingStore;
+
+// 1. Initialize Store and Model
+EmbeddingStore&lt;TextSegment&gt; store = ChromaEmbeddingStore.builder()
+    .baseUrl("http://localhost:8000")
+    .collectionName("knowledge")
+    .build();
+EmbeddingModel model = new AllMiniLmL6V2EmbeddingModel();
+
+// 2. Chunking & Encoding
+Document document = Document.from("Rule 1: Revenue... \\nRule 2: Profit...");
+DocumentSplitter splitter = DocumentSplitters.recursive(200, 20);
+List&lt;TextSegment&gt; segments = splitter.split(document);
+
+// 3. Storage
+for (TextSegment segment : segments) {
+    Embedding embedding = model.embed(segment).content();
+    store.add(embedding, segment);
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Concrete Tracing Case -->
+      <div class="card phase1">
+        <div class="card-title">📊 Concrete Case Study: Rule 2 Ingestion</div>
+        <div class="trace-card">
+          <div class="trace-title">Case Study Trace: Loading Profit Margin Rule</div>
+          
+          <div class="trace-step">
+            <span class="trace-step-name">Step 1: Raw Text Input</span>
+            <span class="trace-io">File Location: metadata/semantic_business_rules.txt
+Text Content: "Rule 2: Profit Margin is calculated as (Revenue - Cost) / Revenue. It should always be represented as a percentage."</span>
+          </div>
+
+          <div class="trace-step">
+            <span class="trace-step-name">Step 2: Text Chunking Output</span>
+            <span class="trace-io">strategy: "metadata-aware"
+Chunk Index: 1
+Identified Header: "Rule 2"
+Chunk Text: "Rule 2: Profit Margin is calculated as (Revenue - Cost) / Revenue. It should always be represented as a percentage."</span>
+          </div>
+
+          <div class="trace-step">
+            <span class="trace-step-name">Step 3: Embedding Vector Creation (Truncated)</span>
+            <span class="trace-io">model: "all-MiniLM-L6-v2"
+Output Dimensions: 384 floats
+Vector Values: [ -0.0418, 0.0823, -0.0105, 0.1245, -0.0078, ... 379 more dimensions ]</span>
+          </div>
+
+          <div class="trace-step">
+            <span class="trace-step-name">Step 4: Vector Store Persistence</span>
+            <span class="trace-io">Database: ChromaDB (SQLite-backed persistent file store)
+Stored Item: { "id": "chunk_1", "vector": [...], "document": "Rule 2: Profit Margin...", "metadata": {"source": "semantic_business_rules.txt"} }</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pitfalls & Best Practices for Ingestion (Phase 1) -->
+      <div class="card phase1" style="margin-top: 2rem; border-color: rgba(0, 242, 254, 0.3);">
+        <div class="card-title">💡 Phase 1 Ingestion: Developer Tips &amp; Gotchas</div>
+        <div class="grid-2">
+          <div>
+            <h4 style="color: var(--secondary); margin-bottom: 0.5rem;">1. Chunks Tuning is an Art</h4>
+            <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-muted); margin-bottom: 1rem;">
+              Do not guess your chunk sizes. If your business rules are long, a chunk size of 200 characters might cut sentences in half. A chunk size of 1000 characters with an overlap of 100 is standard for text paragraphs. If chunking rules, split by logical dividers (like double newlines or bullet headers) instead of characters.
+            </p>
+            <h4 style="color: var(--secondary); margin-bottom: 0.5rem;">2. Thread-Safety in Vector Databases</h4>
+            <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-muted);">
+              ChromaDB running in Embedded Persistent Mode is backed by SQLite and writes to disk. In a multi-threaded web server (like FastAPI in Python or Spring Boot in Java), concurrent inserts can lead to <strong>database locked</strong> exceptions. Ensure your database client instances are managed as singletons.
+            </p>
+          </div>
+          <div>
+            <h4 style="color: var(--java-orange); margin-bottom: 0.5rem;">3. Java Library Gotchas (LangChain4j)</h4>
+            <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-muted); margin-bottom: 1rem;">
+              In LangChain4j, running local models like <code>AllMiniLmL6V2EmbeddingModel</code> uses native ONNX runtime bindings. On Windows/Linux servers, make sure you have the correct OS permissions and native compilation headers if the library attempts to load system-specific libraries.
+            </p>
+            <h4 style="color: var(--secondary); margin-bottom: 0.5rem;">4. Embedding Re-indexing Cost</h4>
+            <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-muted);">
+              Generating embeddings is CPU/GPU intensive. Do not clear and re-insert the collection every time your application boots. Check if the database files already exist, or keep a metadata hash of files to only update modified lines.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Tab 2: Phase 2: Retrieval & Generation -->
+    <div id="tab-phase2" class="tab-content">
+      
+      <!-- Top flow visualization -->
+      <div class="rag-flow-chart">
+        <div class="flow-node active-node">
+          <div class="flow-node-title">1. User Query</div>
+          <div class="flow-node-desc">"Product margin analysis"</div>
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node active-node">
+          <div class="flow-node-title">2. Similarity Match</div>
+          <div class="flow-node-desc">Cosine query vs database vectors</div>
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node active-node">
+          <div class="flow-node-title">3. Context Builder</div>
+          <div class="flow-node-desc">Binds matched schema &amp; retrieved rules</div>
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node active-node" style="border-color: var(--accent); box-shadow: 0 0 15px rgba(255, 0, 127, 0.25);">
+          <div class="flow-node-title">4. Confidence Gatekeeper</div>
+          <div class="flow-node-desc">Scores logic (threshold &ge; 70)</div>
+        </div>
+        <div class="flow-arrow">&rarr;</div>
+        <div class="flow-node active-node">
+          <div class="flow-node-title">5. SQL Generation</div>
+          <div class="flow-node-desc">LLM Prompt / Fallback SQL Output</div>
+        </div>
+      </div>
+
+      <!-- Detail Card -->
+      <div class="card phase2">
+        <div class="card-title">🔬 Phase 2 Runtime Details &amp; LLM Orchestration</div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+          <div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--accent);">Python Implementation</h3>
+            <div class="tag-container">
+              <span class="badge python">sentence_transformers</span>
+              <span class="badge python">chromadb collection.query()</span>
+              <span class="badge model">L2-to-Cosine distance translation</span>
+              <span class="badge python">openai / google-generativeai API</span>
+            </div>
+            <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-muted); margin-bottom: 1rem;">
+              When the user asks a question, the pipeline embeds the query using <code>all-MiniLM-L6-v2</code>. It requests coordinates matching against ChromaDB. The Euclidean distance is mapped to a cosine similarity metric: <code>similarity = 1 - (distance / 2)</code>. The top rules exceeding the threshold are combined with schema lookups. An LLM Prompt Template is sent to OpenAI or Gemini, which responds with clean SQL. If the LLM throws a connection error or keys are missing, the pipeline automatically redirects execution to the local deterministic template system.
+            </p>
+          </div>
+          
+          <div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--java-orange);">Java Equivalent</h3>
+            <div class="tag-container">
+              <span class="badge java">LangChain4j AiServices</span>
+              <span class="badge java">ChatLanguageModel</span>
+              <span class="badge java">PromptTemplate / SystemMessage</span>
+              <span class="badge java">Query Router / Fallback Handler</span>
+            </div>
+            <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-muted); margin-bottom: 1rem;">
+              In Java, runtime orchestration is handled via LangChain4j <strong>AiServices</strong>. The user query is sent to a service interface. Under the hood, LangChain4j queries the <code>EmbeddingStore</code>, formats retrieved matching rules into a <code>SystemMessage</code> template along with DB schemas, and invokes a <code>ChatLanguageModel</code> (e.g. OpenAI/Gemini/Ollama). To implement the fallback, developers write a Java Try-Catch handler wrapping the LLM service method that returns a predefined JDBC/MyBatis SQL template if the remote API fails.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Relational vs Vector Retrieval comparison -->
+      <div class="card secondary-accent" style="margin-top: 2rem;">
+        <div class="card-title">🔍 Relational DB vs. Vector DB: Retrieval Comparison (Phase 2)</div>
+        <p style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.2rem; color: var(--text-muted);">
+          To retrieve rules in a relational database, you must search by exact keywords (e.g., using <code>LIKE '%margin%'</code>). If the user types a synonym like "profit analysis", the relational search yields zero results. A Vector DB converts the user query into a vector and finds the closest coordinate points, retrieving the correct rule even with zero keyword overlap.
+        </p>
+        <table class="compare-table" style="font-size: 0.85rem; margin-top: 1rem;">
+          <thead>
+            <tr>
+              <th style="width: 20%;">Concept</th>
+              <th style="width: 40%; color: var(--java-orange); font-weight: bold;">Relational DB (SQL Query)</th>
+              <th style="width: 40%; color: var(--secondary); font-weight: bold;">Vector DB (Similarity Query)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Search Metric</strong></td>
+              <td><strong>Keyword Matching / SQL LIKE query</strong> (exact string patterns)</td>
+              <td><strong>Coordinate Proximity / Similarity Score</strong> (semantic meaning)</td>
+            </tr>
+            <tr>
+              <td><strong>Retrieval Code</strong></td>
+              <td>
+                <pre style="padding: 0.5rem; font-size: 0.72rem; background: #080a10;"><code>-- Looks for character sequences
+SELECT content 
+FROM rules_table 
+WHERE content LIKE '%margin%' 
+   OR rule_name LIKE '%margin%';</code></pre>
+              </td>
+              <td>
+                <pre style="padding: 0.5rem; font-size: 0.72rem; background: #080a10;"><code># Converts query to vector & finds nearest coordinate matches
+query_vector = model.encode(["Product margin analysis"])
+results = collection.query(
+    query_embeddings=[query_vector],
+    n_results=1
+)</code></pre>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Querying "profit analysis"</strong></td>
+              <td style="color: var(--accent);"><strong>0 Rows returned</strong> (word "margin" is not in "profit analysis")</td>
+              <td style="color: #9ece6a; font-weight: bold;"><strong>Rule 2 Returned</strong> (coordinates reside close in concept space)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Confidence Scorer and Clarification Engine Gatekeeper Card -->
+      <div class="card phase2" style="margin-top: 2rem; border-color: rgba(255, 0, 127, 0.3);">
+        <div class="card-title">🛡️ The Gatekeeper: Confidence Scorer &amp; Clarification Engine (Phase 2 Only)</div>
+        <p style="font-size: 0.95rem; line-height: 1.6; margin-bottom: 1.2rem; color: var(--text-muted);">
+          To protect the data warehouse from executing hallucinated or inaccurate queries, a <strong>Confidence Scorer</strong> acts as a gatekeeper. It evaluates the compiled database context and vector search matches before any SQL is generated.
+        </p>
+
+        <!-- Flow Diagram -->
+        <div style="background: rgba(0, 0, 0, 0.25); border: 1px solid var(--border-color); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+          <div style="color: var(--secondary); font-weight: bold; margin-bottom: 0.8rem; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;">
+            <span>🔄</span> Phase 2 Execution Order (Context-First, Scoring-Second, LLM-Third)
+          </div>
+          <div style="font-family: 'Fira Code', monospace; font-size: 0.78rem; line-height: 1.4; color: #a9b1d6; white-space: pre-wrap; overflow-x: auto;">
+User Question
+     │
+     ▼
+Retrieve Rules (Vector DB) + Metadata (SQLite)
+     │
+     ▼
+[Build Context Object]
+     │
+     ▼
+Calculate Confidence Score (Is it &gt;= 70?)
+     ├── Yes ──► Pass Context to LLM ──► Generate SQL Query
+     │
+     └── No  ──► Trigger Clarification Engine ──► Ask User to Clarify (Halt SQL)</div>
+        </div>
+        
+        <div class="grid-2">
+          <div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--accent);">Why is it ONLY in Phase 2?</h3>
+            <p style="font-size: 0.95rem; line-height: 1.5; color: var(--text-muted); margin-bottom: 1rem;">
+              <strong>Phase 1 (Ingestion &amp; Storage)</strong> is a static, one-time pipeline that chunks documents and stores them in ChromaDB. There are no queries to evaluate or intent matches to perform, meaning confidence scoring is irrelevant here.
+              <br><br>
+              <strong>Phase 2 (Retrieval &amp; Generation)</strong> is a dynamic runtime process. A user query can be ambiguous, incomplete, or poorly mapped. The Confidence Scorer evaluates the completeness of the mapped schema metadata and retrieved business rules at runtime, preventing the LLM from making guesses.
+            </p>
+            
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--secondary);">The Clarification Threshold (&lt; 70)</h3>
+            <p style="font-size: 0.95rem; line-height: 1.5; color: var(--text-muted);">
+              If the evaluated score falls <strong>below 70</strong>, the pipeline execution stops and triggers the <strong>Clarification Engine</strong>. Rather than executing a low-confidence SQL query, the engine identifies the missing component (dimensions or metrics) and asks the user:
+            </p>
+            <ul style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem; margin-left: 1.5rem; line-height: 1.4;">
+              <li><em>Missing Metrics:</em> "Which specific metric are you looking for? (e.g., Gross Revenue, Net Revenue, Profit?)"</li>
+              <li><em>Missing Dimensions/Entities:</em> "By which dimension would you like to see this? (e.g., by Customer, by Region?)"</li>
+            </ul>
+          </div>
+          
+          <div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--text-main);">Dual Scoring Methodologies</h3>
+            <div class="tag-container" style="margin-bottom: 1rem;">
+              <span class="badge python">LLM Scorer (Primary)</span>
+              <span class="badge java">Rule-Based Math (Fallback)</span>
+            </div>
+            
+            <h4 style="font-size: 0.95rem; color: #a5b4fc; margin-bottom: 0.3rem;">1. LLM Assessor (Primary Mode)</h4>
+            <p style="font-size: 0.85rem; line-height: 1.4; color: var(--text-muted); margin-bottom: 1rem;">
+              Constructs a prompt sending the user question, the matched schema entities/metrics/relationships, and the text of retrieved rules. It asks the LLM to inspect schema coverage, check for unresolved relationships, and output a structured JSON containing a score (0-100) and reasoning.
+            </p>
+            
+            <h4 style="font-size: 0.95rem; color: #9ece6a; margin-bottom: 0.3rem;">2. Deterministic Fallback Scorer (Local Rule-Based)</h4>
+            <p style="font-size: 0.85rem; line-height: 1.4; color: var(--text-muted); margin-bottom: 0.5rem;">
+              If LLM keys are missing or connections time out, the scorer falls back to a deterministic point rubric:
+            </p>
+            
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem; text-align: left; color: var(--text-muted);">
+              <thead>
+                <tr style="border-bottom: 1px solid var(--border-color); color: var(--text-main);">
+                  <th style="padding: 0.4rem 0;">Factor Evaluated</th>
+                  <th style="padding: 0.4rem 0; text-align: right;">Max Points</th>
+                  <th style="padding: 0.4rem 0; padding-left: 1rem;">Rule Metric</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.03);">
+                  <td style="padding: 0.4rem 0; font-weight: 600; color: #f8f8f2;">Metadata Match</td>
+                  <td style="padding: 0.4rem 0; text-align: right; color: var(--secondary);">30 pts</td>
+                  <td style="padding: 0.4rem 0; padding-left: 1rem;">15 pts if entities matched, 15 pts if metrics matched.</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.03);">
+                  <td style="padding: 0.4rem 0; font-weight: 600; color: #f8f8f2;">Relationship Match</td>
+                  <td style="padding: 0.4rem 0; text-align: right; color: var(--secondary);">20 pts</td>
+                  <td style="padding: 0.4rem 0; padding-left: 1rem;">20 pts if joins are resolved/unneeded. 5 pts if relationships are missing for multiple entities.</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.03);">
+                  <td style="padding: 0.4rem 0; font-weight: 600; color: #f8f8f2;">Similarity &amp; Rules</td>
+                  <td style="padding: 0.4rem 0; text-align: right; color: var(--secondary);">35 pts</td>
+                  <td style="padding: 0.4rem 0; padding-left: 1rem;">Average vector cosine similarity score of retrieved rules scaled out of 35.</td>
+                </tr>
+                <tr style="border-bottom: 1px solid rgba(255,255,255,0.03);">
+                  <td style="padding: 0.4rem 0; font-weight: 600; color: #f8f8f2;">Question Understanding</td>
+                  <td style="padding: 0.4rem 0; text-align: right; color: var(--secondary);">15 pts</td>
+                  <td style="padding: 0.4rem 0; padding-left: 1rem;">15 pts if metrics or entities are parsed in NLP intent.</td>
+                </tr>
+                <tr style="font-weight: bold; color: var(--accent);">
+                  <td style="padding: 0.4rem 0;">Total Possible</td>
+                  <td style="padding: 0.4rem 0; text-align: right;">100 pts</td>
+                  <td style="padding: 0.4rem 0; padding-left: 1rem;">Gate threshold >= 70 to execute SQL generation.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Code Comparison -->
+      <div class="card">
+        <div class="card-title">🖥️ Phase 2 Code Comparison</div>
+        
+        <div class="step-comparison">
+          <!-- Python Retrieve & Prompt -->
+          <div>
+            <div class="comp-header">
+              <span>🐍 Python Code</span>
+              <span class="badge python">src/phase2_retrieval/retrieval/rag_retriever.py</span>
+            </div>
+            <pre><code># 1. Retrieve Rules & Metadata (Build Context First)
+query_emb = model.encode(["Product margin analysis"]).tolist()
+rules = collection.query(query_embeddings=query_emb, n_results=1)
+context = build_context(rules, db_metadata)
+
+# 2. Evaluate Confidence Score (Gatekeeper Second)
+scorer = ConfidenceScorer()
+score = scorer.calculate_score(context, query_intent)
+
+if score &lt; 70:
+    # Halt SQL generation and prompt user for details
+    return ClarificationEngine().request_clarification(context)
+
+# 3. LLM SQL Generation Prompt (LLM Third)
+prompt = f"""
+You are a SQL Expert. Generate an ANSI SQL query.
+Context Schema: {context.schema}
+Retrieved Rules: {context.rules}
+User Question: "Product margin analysis"
+"""
+try:
+    sql = call_llm(prompt)
+except Exception:
+    sql = generate_fallback_sql(context)</code></pre>
+          </div>
+
+          <!-- Java Retrieve & Prompt -->
+          <div>
+            <div class="comp-header">
+              <span>☕ Java Code (LangChain4j)</span>
+              <span class="badge java">SqlGenerationService.java</span>
+            </div>
+            <pre><code>// 1. Build Context (Retrieve Rules & Schema)
+List&lt;EmbeddingMatch&lt;TextSegment&gt;&gt; rules = store.findRelevant(query, 1);
+Context context = ContextBuilder.build(rules, schemaLookup);
+
+// 2. Evaluate Confidence Score (Gatekeeper)
+int score = confidenceScorer.calculateScore(context, query);
+if (score &lt; 70) {
+    return clarificationEngine.requestClarification(context);
+}
+
+// 3. LLM SQL Generation (LLM Third)
+try {
+    return sqlBuilder.generateSql(
+        query, context.getSchema(), context.getRule()
+    );
+} catch (Exception ex) {
+    return executeJavaFallbackTemplates(context);
+}</code></pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Concrete Tracing Case -->
+      <div class="card phase2">
+        <div class="card-title">📊 Concrete Case Study: Querying Profit Margin</div>
+        <div class="trace-card flex-direction:column">
+          <div class="trace-title">Case Study Trace: Processing "Product margin analysis"</div>
+          
+          <div class="trace-step">
+            <span class="trace-step-name">Step 1: User Query Input</span>
+            <span class="trace-io">User Input: "Product margin analysis"</span>
+          </div>
+
+          <div class="trace-step">
+            <span class="trace-step-name">Step 2: Vector DB Proximity Matching</span>
+            <span class="trace-io">Matched Chunk: "Rule 2: Profit Margin is calculated as (Revenue - Cost) / Revenue..."
+Calculated L2 Distance: 0.96
+Converted Cosine Similarity: 0.52 (Satisfies threshold >= 0.3)</span>
+          </div>
+
+          <div class="trace-step">
+            <span class="trace-step-name">Step 3: SQLite Schema Lookup Result</span>
+            <span class="trace-io">Matched Entities: [{"id": "e4", "name": "Product"}]
+Matched Metrics: [{"id": "m3", "name": "Margin", "calc_type": "formula"}]
+Matched Relationships: []</span>
+          </div>
+
+          <div class="trace-step">
+            <span class="trace-step-name">Step 4: LLM Prompt Construction (SQL Generation)</span>
+            <span class="trace-io">System Instructions: "You are a SQL Expert for an ANSI-compliant Data Warehouse..."
+Database Context: entities: Product, metrics: Margin (formula), join columns: none
+Retrieved Rule: "Rule 2: Profit Margin calculation..."
+User Question: "Product margin analysis"</span>
+          </div>
+
+          <div class="trace-step">
+            <span class="trace-step-name">Step 5: Output Generation (with LLM Fallback Active)</span>
+            <span class="trace-io">Execution Log: "[LLM Generator] Fallback triggered. Executing local template-based SQL generator..."
+Generated SQL Query: "SELECT p.product_name, (SUM(o.net_amount - o.cost) / SUM(o.net_amount)) * 100 as profit_margin_pct
+FROM products p, orders o
+WHERE p.product_id = o.product_id
+GROUP BY p.product_name"</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pitfalls & Best Practices for Retrieval (Phase 2) -->
+      <div class="card phase2" style="margin-top: 2rem; border-color: rgba(255, 0, 127, 0.3);">
+        <div class="card-title">💡 Phase 2 Retrieval: Developer Tips &amp; Gotchas</div>
+        <div class="grid-2">
+          <div>
+            <h4 style="color: var(--accent); margin-bottom: 0.5rem;">1. Semantic Search Similarity Scaling</h4>
+            <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-muted); margin-bottom: 1rem;">
+              Vector similarity distance metrics vary. ChromaDB defaults to L2 Squared distance (where 0.0 is an exact match and larger values mean different coordinates). To convert it to a Cosine Similarity score from 0.0 to 1.0, you must use scaling formulas: <code>similarity = 1.0 - (l2_distance / 2.0)</code>.
+            </p>
+            <h4 style="color: var(--accent); margin-bottom: 0.5rem;">2. Handle Context Overflow (Token Budgets)</h4>
+            <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-muted);">
+              When retrieving multiple documents (using Top-K match), you might exceed the LLM's context window. Always track your token budgets and truncate matches before passing the prompt payload. A common error is passing a massive schema which leaves 0 tokens for the LLM's response.
+            </p>
+          </div>
+          <div>
+            <h4 style="color: var(--java-orange); margin-bottom: 0.5rem;">3. API Failures &amp; Rate Limits</h4>
+            <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-muted); margin-bottom: 1rem;">
+              LLM API calls are highly unstable. In Java, wrap your <code>ChatLanguageModel</code> calls inside retry interceptors or resilience frameworks like Resiliance4j. In Python, use decorators like <code>@retry</code>. The local template fallback mechanism is your final safety net.
+            </p>
+            <h4 style="color: var(--accent); margin-bottom: 0.5rem;">4. Match Thresholding</h4>
+            <p style="font-size: 0.9rem; line-height: 1.5; color: var(--text-muted);">
+              Vector search will always return results, even if the user query is completely unrelated. For example, asking "what is the weather?" will still return the closest business rule in your database. Always set a minimum similarity threshold (e.g. 0.35) below which you ignore the matching rule context.
+            </p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <footer>
+    <p>NLP Semantic Data Pipeline Builder Deep Dive Guide. Prepared for transitions.</p>
+  </footer>
+
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      
+      const targetBtn = Array.from(document.querySelectorAll('.tab-btn')).find(btn => {
+        const onclickAttr = btn.getAttribute('onclick');
+        return onclickAttr && onclickAttr.includes(tabId);
+      });
+      if (targetBtn) targetBtn.classList.add('active');
+      
+      document.getElementById(`tab-${tabId}`).classList.add('active');
+    }
+  </script>
+</body>
+</html>

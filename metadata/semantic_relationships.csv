@@ -1,0 +1,6 @@
+relationship_id,source_entity,target_entity,relationship_type,description
+r1,Customer,Order,one_to_many,A customer can place multiple orders
+r2,Order,Product,many_to_many,An order contains multiple products and vice versa
+r3,Order,Invoice,one_to_one,An order generates one invoice
+r4,Invoice,Region,many_to_one,Many invoices belong to a specific region
+r5,Product,Supplier,many_to_one,Many products are supplied by one supplier

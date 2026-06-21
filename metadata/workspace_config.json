@@ -1,0 +1,10 @@
+{
+  "workspaces": [
+    {
+      "id": "ws_001",
+      "name": "Global Sales",
+      "description": "Sales and revenue tracking across regions",
+      "default_currency": "USD"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+entity_id,entity_name,description,synonyms
+e1,Customer,An individual or company that purchases goods,"client,buyer,purchaser"
+e2,Order,A request for goods or services,"purchase order,sales order"
+e3,Invoice,A bill sent to a customer,"bill,statement"
+e4,Product,An item offered for sale,"item,goods,sku"
+e5,Region,A geographic area for sales,"territory,area,zone"
+e6,SalesPerson,An employee who sells products,"rep,account executive,seller"
+e7,Warehouse,A facility where goods are stored,"depot,storage,distribution center"
+e8,Supplier,A vendor providing goods,"vendor,provider"

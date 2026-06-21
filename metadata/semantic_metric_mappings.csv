@@ -1,0 +1,6 @@
+metric_id,source_system,column_name,aggregation
+m1,Salesforce,Amount,SUM
+m1,Epicor,OrderDtl.DocExtPriceDtl,SUM
+m2,Salesforce,Profit__c,SUM
+m4,SYSPRO,SorMaster.SalesOrder,COUNT
+m5,Priority ERP,CUSTOMERS.CUSTNAME,COUNT_DISTINCT

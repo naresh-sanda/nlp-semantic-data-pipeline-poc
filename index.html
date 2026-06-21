@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NLP Semantic Data Pipeline Builder - Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0f111a;
+      --bg-card: rgba(30, 34, 51, 0.6);
+      --bg-nav: #141824;
+      --primary: #8257e5;
+      --primary-glow: rgba(130, 87, 229, 0.4);
+      --secondary: #00f2fe;
+      --secondary-glow: rgba(0, 242, 254, 0.3);
+      --accent: #ff007f;
+      --text-main: #f8f8f2;
+      --text-muted: #8b949e;
+      --border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-dark);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary);
+    }
+
+    header {
+      background-color: var(--bg-nav);
+      border-bottom: 1px solid var(--border-color);
+      padding: 2rem;
+      text-align: center;
+      position: relative;
+    }
+
+    .hero-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -1px;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #ffffff, #a5b4fc, var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: 1rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 3rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 3.5rem;
+    }
+
+    /* Portal Grid */
+    .portal-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+    }
+
+    @media (max-width: 1024px) {
+      .portal-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .portal-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .portal-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 2.2rem;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .portal-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 5px;
+      height: 100%;
+      background: linear-gradient(to bottom, var(--secondary), var(--primary));
+    }
+
+    .portal-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(0, 242, 254, 0.25);
+      box-shadow: 0 15px 45px rgba(0, 242, 254, 0.1);
+    }
+
+    .portal-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .portal-card-icon {
+      font-size: 2.2rem;
+    }
+
+    .portal-card-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 0.8rem;
+    }
+
+    .portal-card-desc {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+
+    .portal-card-footer {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--secondary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* Advanced Section */
+    .section-title {
+      font-size: 1.6rem;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.8rem;
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .concept-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+
+    .concept-card {
+      background: rgba(30, 34, 51, 0.3);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 2rem;
+    }
+
+    .concept-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: var(--secondary);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .concept-content-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 2rem;
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 968px) {
+      .concept-content-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .concept-desc {
+      font-size: 0.92rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    .concept-desc strong {
+      color: var(--text-main);
+    }
+
+    .concept-visual {
+      background: #080a10;
+      border: 1px solid rgba(255,255,255,0.03);
+      border-radius: 8px;
+      padding: 1.2rem;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.78rem;
+      color: #a9b1d6;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      line-height: 1.4;
+    }
+
+    .tag {
+      background: rgba(130, 87, 229, 0.08);
+      color: #a5b4fc;
+      border: 1px solid rgba(130, 87, 229, 0.15);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    footer {
+      background-color: var(--bg-nav);
+      border-top: 1px solid var(--border-color);
+      padding: 2rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="hero-title">NLP Semantic Data Pipeline Builder</div>
+    <div class="hero-subtitle">Interactive Educational Dashboard Suite &amp; Advanced RAG Portals for Cross-Ecosystem Transitioning</div>
+    <div class="author-badge" style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-muted); display: flex; gap: 1.5rem; justify-content: center; align-items: center; opacity: 0.85;">
+      <span>👤 <strong>Naresh Sanda</strong> (Technical Architect)</span>
+      <span style="color: rgba(255,255,255,0.15)">|</span>
+      <span>📧 <a href="mailto:nareshkumar.sanda@gmail.com" style="color: var(--secondary); text-decoration: none;">nareshkumar.sanda@gmail.com</a></span>
+    </div>
+  </header>
+
+  <div class="container">
+    
+    <!-- Portal Cards -->
+    <div class="portal-grid">
+      
+      <!-- Link to execution_flow.html -->
+      <a href="execution_flow.html" class="portal-card">
+        <div>
+          <div class="portal-card-header">
+            <span class="portal-card-icon">🖥️</span>
+            <span class="tag">Stage-by-Stage</span>
+          </div>
+          <div class="portal-card-title">Interactive Pipeline Simulator</div>
+          <div class="portal-card-desc">
+            Explore the 7 stages of query translation, including NLP intent analysis, metadata lookups, context builder merges, and SQL generation. Features detailed Python source codes, Spring/Hibernate Java equivalents, and real-time mock query logs.
+          </div>
+        </div>
+        <div class="portal-card-footer">
+          Open Simulator Dashboard &rarr;
+        </div>
+      </a>
+
+      <!-- Link to rag_deep_dive.html -->
+      <a href="rag_deep_dive.html" class="portal-card">
+        <div>
+          <div class="portal-card-header">
+            <span class="portal-card-icon">🔬</span>
+            <span class="tag">RAG Deep Dive</span>
+          </div>
+          <div class="portal-card-title">Ingestion &amp; Retrieval Phases</div>
+          <div class="portal-card-desc">
+            Learn the mechanics of RAG. Breaks down Phase 1 (Ingestion &amp; Storage) and Phase 2 (Query, Retrieval, &amp; LLM Orchestration). Contains side-by-side SQL Relational vs. Vector Database comparisons and concrete case traces.
+          </div>
+        </div>
+        <div class="portal-card-footer">
+          Open RAG &amp; Vector Deep Dive &rarr;
+        </div>
+      </a>
+
+      <!-- Link to vector_distance_guide.html -->
+      <a href="vector_distance_guide.html" class="portal-card">
+        <div>
+          <div class="portal-card-header">
+            <span class="portal-card-icon">📐</span>
+            <span class="tag">Distance Metrics</span>
+          </div>
+          <div class="portal-card-title">Vector Distance Metrics Guide</div>
+          <div class="portal-card-desc">
+            Understand L2, Cosine Similarity &amp; Inner Product — explained with real-world analogies, visual diagrams, and actual number walkthroughs. See which metric fits our pipeline and exactly where it's configured in the code.
+          </div>
+        </div>
+        <div class="portal-card-footer">
+          Open Distance Metrics Guide &rarr;
+        </div>
+      </a>
+
+    </div>
+
+    <!-- Advanced Concepts Section -->
+    <div>
+      <h2 class="section-title">⚙️ Advanced RAG &amp; Vector Concepts</h2>
+      <div class="concept-grid">
+
+        <!-- Concept 1: Chunk Overlap -->
+        <div class="concept-card">
+          <div class="concept-title">📚 1. Chunk Overlap Strategy</div>
+          <div class="concept-content-grid">
+            <div class="concept-desc">
+              During Phase 1 (Ingestion), large documents are split into chunks. If you split text strictly on character boundaries, you run the risk of cutting a critical word, sentence, or calculation formula in half.
+              <br><br>
+              <strong>Why we use Overlap:</strong> By keeping a sliding window (e.g. chunk size 200 characters, overlap 20), the end of Chunk A matches the beginning of Chunk B. This guarantees that context near boundary splits is not lost or fragmented, preserving mathematical formulas and vocabulary.
+            </div>
+            <div class="concept-visual">
+<span style="color: var(--accent);"># No Overlap (Clipped context)</span>
+Chunk 1: "...Profit Margin is calculated as (Revenue -"
+Chunk 2: "Cost) / Revenue. It should always..."
+
+<span style="color: #9ece6a; margin-top: 0.6rem;"># With Overlap (Context preserved)</span>
+Chunk 1: "...calculated as (Revenue - Cost)"
+Chunk 2: "calculated as (Revenue - Cost) / Revenue..."
+            </div>
+          </div>
+        </div>
+
+        <!-- Concept 2: Vector Indexing HNSW vs Flat -->
+        <div class="concept-card">
+          <div class="concept-title">📐 2. Vector Indexing: HNSW vs. Flat (Full Scan)</div>
+          <div class="concept-content-grid">
+            <div class="concept-desc">
+              When querying vectors in ChromaDB or Milvus, calculating distances against millions of records is computationally expensive.
+              <br><br>
+              <strong>Flat Index (No Graph):</strong> Performs a linear search (full scan), calculating distance coordinates against every vector in the DB. Slow on large databases.
+              <br><br>
+              <strong>HNSW (Hierarchical Navigable Small World):</strong> Builds a multi-layered graph where the top layers contain sparse networks for quick routing, and lower layers contain dense, localized coordinate networks. This acts like a **Relational Clustered Index / B-Tree**, allowing the database to search logarithmic paths instead of a full scan.
+            </div>
+            <div class="concept-visual">
+<span style="color: #bb9af7;">[HNSW Hierarchical Graph Structure]</span>
+Layer 2 (Express):   (Node A) ------------ (Node G)
+                        |                      |
+Layer 1 (Fast):      (Node A) --- (Node D) --- (Node G)
+                        |            |         |
+Layer 0 (All docs):  (A)-(B)-(C) -- (D)-(E) -- (F)-(G)
+            </div>
+          </div>
+        </div>
+
+        <!-- Concept 3: Pre-Filtering vs Post-Filtering -->
+        <div class="concept-card">
+          <div class="concept-title">⚡ 3. Pre-Filtering vs. Post-Filtering</div>
+          <div class="concept-content-grid">
+            <div class="concept-desc">
+              If your database rules belong to specific workspaces or users, you want to restrict search boundaries.
+              <br><br>
+              <strong>Post-Filtering:</strong> First fetches the top 10 closest vectors globally, and then discards results that do not belong to the user's workspace. <em>Caution:</em> If the top 10 results belong to other workspaces, the user receives 0 results (known as the "Single-Category Recall" problem).
+              <br><br>
+              <strong>Pre-Filtering (Standard):</strong> The database filters out irrelevant records first using SQL-like metadata boundaries, and then runs the vector similarity search strictly on the matching subset. This guarantees retrieving the correct number of top rules.
+            </div>
+            <div class="concept-visual">
+<span style="color: var(--accent);"># Post-Filtering (Unsafe)</span>
+Search Globals &rarr; Filter workspace
+(Can yield 0 hits if Top-K matches aren't yours)
+
+<span style="color: #9ece6a; margin-top: 0.6rem;"># Pre-Filtering (Safe - ChromaDB)</span>
+collection.query(
+    query_embeddings=[q_vector],
+    where={"workspace_id": "ws1"}, <span style="color: var(--secondary);"># metadata filter</span>
+    n_results=3
+)
+            </div>
+          </div>
+        </div>
+
+        <!-- Concept 4: Hybrid Search (Dense vs Sparse) -->
+        <div class="concept-card">
+          <div class="concept-title">🔗 4. Hybrid Search: Dense vs. Sparse (RRF)</div>
+          <div class="concept-content-grid">
+            <div class="concept-desc">
+              RAG retrievers often merge two different search methodologies:
+              <br><br>
+              <strong>Dense Retrieval (Neural):</strong> Uses embeddings (like <code>all-MiniLM-L6-v2</code>) to capture conceptual similarity and meaning. It is strong for matching synonyms ("profit" &rarr; "revenue minus cost").
+              <br><br>
+              <strong>Sparse Retrieval (Lexical):</strong> Uses word frequency/lexical search (like BM25 or TF-IDF) to search exact keyword tokens. It is strong for matching unique serial IDs, product numbers, or codes.
+              <br><br>
+              <strong>Reciprocal Rank Fusion (RRF):</strong> Merges matches by summing reciprocal ranks: <code>Score = 1/(Rank_dense + 60) + 1/(Rank_sparse + 60)</code> to return a balanced list of results.
+            </div>
+            <div class="concept-visual">
+<span style="color: #bb9af7;">[Hybrid Search Score Blending]</span>
+Vector Similarity:  Captures semantic synonyms (70%)
+Lexical Keyword:    Captures exact code/word hits (30%)
+
+final_score = (dense * 0.7) + (sparse * 0.3)
+            </div>
+          </div>
+        </div>
+
+        <!-- Concept 5: Context Window Management -->
+        <div class="concept-card">
+          <div class="concept-title">🗑️ 5. Context Window Management</div>
+          <div class="concept-content-grid">
+            <div class="concept-desc">
+              LLMs have strict limits on the number of context tokens they can process. If you retrieve too many rules or schema mappings, the prompt overflows, causing either API errors or model "attention dilution" where it ignores instructions.
+              <br><br>
+              <strong>Mitigation:</strong>
+              1. **Rank &amp; Truncate**: Filter and sort using hybrid scores, only keeping the top K rules.
+              2. **Tokens Budgeting**: Dynamically count query tokens and slice context arrays before hitting prompt boundaries.
+            </div>
+            <div class="concept-visual">
+<span style="color: var(--secondary);"># Dynamic Context Budgeting</span>
+Total Limit: 4096 tokens
+User query: 50 tokens
+SQLite Schemas: 1200 tokens
+Remaining Budget: 2846 tokens
+&rarr; Fill with top rules until budget is consumed.
+            </div>
+          </div>
+        </div>
+
+        <!-- Concept 6: Confidence Scoring Gatekeeper -->
+        <div class="concept-card">
+          <div class="concept-title">🛡️ 6. Confidence Scoring &amp; Clarification Gatekeeping</div>
+          <div class="concept-content-grid">
+            <div class="concept-desc">
+              Before passing the built context to the LLM for SQL generation, the pipeline runs a <strong>Confidence Scorer</strong> to evaluate query completeness and mapping quality at runtime.
+              <br><br>
+              <strong>Why it is in Phase 2 Only:</strong> Phase 1 (Ingestion) only writes embeddings statically. Phase 2 (Retrieval) dynamically evaluates queries. If the query is ambiguous, missing join definitions, or matching low-similarity rules, the score falls below the threshold.
+              <br><br>
+              <strong>Clarification Engine:</strong> If the confidence score is <strong>below 70</strong>, the engine prompts the user for specific dimensions or metrics rather than executing a guessed, potentially incorrect SQL query.
+            </div>
+            <div class="concept-visual">
+<span style="color: var(--accent);"># Confidence Threshold Guard</span>
+If score &lt; 70:
+    halt_execution()
+    trigger_clarification_questions()
+else:
+    generate_and_execute_sql()
+
+<span style="color: #9ece6a; margin-top: 0.6rem;"># Fallback Scoring Formula</span>
+Score = MetadataMatch(30) + JoinMatch(20)
+        + VectorSim(35) + IntentParsed(15)
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <p>NLP Semantic Data Pipeline Builder Portal. Designed for cross-compiling team transitions.</p>
+  </footer>
+
+</body>
+</html>

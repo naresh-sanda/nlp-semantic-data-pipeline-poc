@@ -1,0 +1,17 @@
+Rule 1: Revenue Calculation
+Revenue should always be calculated using the net amount after discounts. Do not include taxes in the revenue calculation.
+
+Rule 2: Profit Margin
+Profit Margin is calculated as (Revenue - Cost) / Revenue. It should always be represented as a percentage.
+
+Rule 3: Active Customers
+A customer is considered 'Active' if they have placed an order within the last 12 months.
+
+Rule 4: Top Customers
+When calculating 'Top Customers', always sort by Revenue descending unless specified otherwise.
+
+Rule 5: Region Hierarchy
+Regions roll up to Countries, which roll up to Continents. When analyzing by region, default to the lowest level available in the dataset.
+
+Rule 6: Churn Definition
+Customer churn happens when an active customer does not place an order for 18 consecutive months.
