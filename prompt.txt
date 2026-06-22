@@ -1,0 +1,542 @@
+You are a Senior AI Architect and Python Engineer.
+
+Build a FULLY WORKING Python Proof of Concept for an AI-Powered Data Warehouse / Data Mart NLP Builder.
+
+The POC must be runnable locally using Python.
+
+Do NOT generate pseudo-code.
+
+Generate complete source code files.
+
+Generate project folder structure.
+
+Generate sample data.
+
+Generate installation instructions.
+
+Generate README.md.
+
+Generate requirements.txt.
+
+The objective is to demonstrate an end-to-end AI architecture that converts business questions into SQL using metadata lookup + RAG retrieval.
+
+Business Scenario
+
+Users ask business questions such as:
+
+Show monthly sales by customer
+Top customers by revenue
+Product profitability analysis
+Revenue trend by region
+Customer churn analysis
+Sales by category
+
+The system should understand the business intent and generate SQL.
+
+The system must NOT rely solely on vector search.
+
+The architecture must use BOTH:
+
+Structured Metadata Retrieval
+
+AND
+
+Semantic RAG Retrieval
+Required Architecture
+
+Implement the following flow:
+
+User Question
+        │
+        ▼
+Question Analyzer
+        │
+        ▼
+Entity Extraction
+        │
+        ▼
+Metric Extraction
+        │
+        ▼
+Metadata Lookup
+        │
+        ▼
+Relationship Resolution
+        │
+        ▼
+RAG Retrieval
+        │
+        ▼
+Context Builder
+        │
+        ▼
+Prompt Builder
+        │
+        ▼
+LLM Simulation
+        │
+        ▼
+SQL Generation
+        │
+        ▼
+Confidence Engine
+        │
+        ▼
+User Approval
+Technologies
+
+Use:
+
+Python 3.11
+
+SQLite
+
+ChromaDB
+
+Sentence Transformers
+
+LangChain
+
+Pandas
+
+NumPy
+
+scikit-learn
+
+OpenAI compatible abstraction layer
+
+No cloud dependencies.
+
+Everything must run locally.
+
+Metadata Layer
+
+Create sample metadata files representing ERP systems:
+
+Salesforce
+
+Epicor
+
+Priority ERP
+
+SYSPRO
+
+Create realistic sample metadata.
+
+Implement:
+
+semantic_entities.csv
+
+semantic_source_mappings.csv
+
+semantic_metrics.csv
+
+semantic_metric_mappings.csv
+
+semantic_relationships.csv
+
+workspace_config.json
+
+semantic_business_rules.txt
+
+semantic_glossary.txt
+
+Sample Metadata Examples
+
+Entities:
+
+Customer
+
+Order
+
+Invoice
+
+Product
+
+Region
+
+SalesPerson
+
+Warehouse
+
+Supplier
+
+Metrics:
+
+Revenue
+
+Profit
+
+Margin
+
+OrderCount
+
+CustomerCount
+
+AverageOrderValue
+
+Relationships:
+
+Customer → Order
+
+Order → Product
+
+Order → Invoice
+
+Invoice → Region
+
+Product → Supplier
+
+Metadata Database
+
+Load metadata into SQLite.
+
+Create tables:
+
+semantic_entities
+
+semantic_metrics
+
+semantic_relationships
+
+semantic_source_mappings
+
+semantic_metric_mappings
+
+workspace_config
+
+Implement deterministic lookup.
+
+Examples:
+
+Customer
+
+Revenue
+
+Profit
+
+Order
+
+Region
+
+must be found using SQL lookup.
+
+No vector search for these.
+
+RAG Layer
+
+Use ChromaDB.
+
+Store:
+
+Business Rules
+
+Glossary
+
+Governance Policies
+
+Calculation Rules
+
+Data Quality Rules
+
+Metric Definitions
+
+Chunking Requirements
+
+Implement:
+
+Fixed chunking
+
+Recursive chunking
+
+Metadata-aware chunking
+
+Show all 3 approaches.
+
+Allow switching strategy.
+
+Embeddings
+
+Use:
+
+all-MiniLM-L6-v2
+
+Generate embeddings for:
+
+business rules
+
+glossary
+
+governance
+
+definitions
+
+Store vectors in ChromaDB.
+
+Display:
+
+number of chunks
+
+embedding dimensions
+
+collection size
+
+Vector Search
+
+Implement:
+
+Cosine similarity
+
+Top-K retrieval
+
+Metadata filtering
+
+Score threshold filtering
+
+Hybrid retrieval
+
+Show retrieval scores.
+
+Example:
+
+Chunk 1
+Score 0.91
+
+Chunk 2
+Score 0.87
+
+Chunk 3
+Score 0.82
+Hybrid Search
+
+Implement:
+
+Keyword Search
+
+BM25
+
+Vector Search
+
+Hybrid Search
+
+Combine scores.
+
+Display:
+
+Keyword Score
+BM25 Score
+Vector Score
+Final Score
+Question Analyzer
+
+Implement NLP extraction.
+
+Extract:
+
+Business Entities
+
+Metrics
+
+Time Period
+
+Dimensions
+
+Filters
+
+Examples:
+
+Question:
+
+Show monthly revenue by customer
+
+Extract:
+
+Metric:
+Revenue
+
+Dimension:
+Customer
+
+Time Grain:
+Month
+
+Context Builder
+
+Merge:
+
+Metadata Lookup Results
+
+Relationship Results
+
+RAG Results
+
+Build final context object.
+
+Display generated context.
+
+Example:
+
+{
+  "entities":[...],
+  "metrics":[...],
+  "relationships":[...],
+  "business_rules":[...]
+}
+SQL Generator
+
+Implement SQL generation.
+
+Do NOT call external LLMs.
+
+Simulate an LLM using templates.
+
+Generate SQL.
+
+Examples:
+
+Revenue by Customer
+
+Revenue by Region
+
+Profitability by Product
+
+Top Customers
+
+Monthly Revenue
+
+Confidence Engine
+
+Implement confidence scoring.
+
+Factors:
+
+Metadata Match
+
+Metric Match
+
+Relationship Coverage
+
+Vector Similarity
+
+Business Rule Coverage
+
+Question Understanding
+
+Generate score:
+
+0-100
+
+Example:
+
+Metadata Match 30
+Rules Match 20
+Relationship Match 20
+Similarity 15
+Question Understanding 15
+
+Total 100
+Clarification Engine
+
+If confidence < 70
+
+Generate clarification questions.
+
+Example:
+
+Which revenue metric?
+
+Net Revenue
+Gross Revenue
+Booked Revenue
+Sample Questions
+
+Automatically test:
+
+Show monthly revenue by customer
+
+Top 10 customers by profit
+
+Revenue by region
+
+Product margin analysis
+
+Orders by supplier
+
+Customer growth trend
+
+Sales by warehouse
+
+Console Output
+
+Display:
+
+Question
+
+Extracted Entities
+
+Metadata Lookup Results
+
+Retrieved Chunks
+
+Similarity Scores
+
+Built Context
+
+Generated SQL
+
+Confidence Score
+
+Clarification Required
+
+Folder Structure
+
+Generate:
+
+ai_dw_nlp_poc/
+
+├── data/
+├── metadata/
+├── vector_store/
+├── db/
+├── src/
+│   ├── loaders/
+│   ├── chunking/
+│   ├── embeddings/
+│   ├── retrieval/
+│   ├── metadata_lookup/
+│   ├── analyzer/
+│   ├── context_builder/
+│   ├── sql_generator/
+│   ├── confidence/
+│   └── main.py
+│
+├── requirements.txt
+├── README.md
+└── run_demo.py
+Deliverables
+
+Generate:
+
+Complete source code
+Sample metadata
+Sample ERP metadata
+Sample business rules
+SQLite schema
+ChromaDB implementation
+Chunking implementation
+Embedding generation
+Similarity search
+Hybrid retrieval
+Context builder
+SQL generation
+Confidence scoring
+End-to-end runnable demo
+README with execution steps
+No placeholders
+No TODO comments
+Project must run after:
+pip install -r requirements.txt
+
+python run_demo.py
+Include extensive logging so every step of the NLP → Metadata → RAG → SQL pipeline is visible.
+Generate enough sample data to demonstrate all flows including Salesforce, Epicor, Priority ERP, and SYSPRO metadata.
