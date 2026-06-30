@@ -3,6 +3,7 @@ os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 import sys
+import time
 
 # Add project root and src to Python path
 project_root = os.path.dirname(os.path.abspath(__file__))
@@ -13,60 +14,81 @@ sys.path.append(os.path.join(project_root, 'src'))
 
 def initialize_knowledge_base(embedder):
     """Loads semantic business rules and glossary into ChromaDB."""
+    from utils.logger import log_step
     from src.phase1_ingestion.chunking.chunker import Chunker
+    
+    init_start = time.time()
+    log_step("Starting Phase 1 Initialization (knowledge base loading)...")
 
-    rules_path = os.path.join("metadata", "semantic_business_rules.txt")
-    glossary_path = os.path.join("metadata", "semantic_glossary.txt")
+    rules_path = os.path.join(project_root, "metadata", "semantic_business_rules.txt")
+    glossary_path = os.path.join(project_root, "metadata", "semantic_glossary.txt")
 
     chunker = Chunker(strategy="metadata-aware")
     chunks = []
 
     if os.path.exists(rules_path):
+        read_start = time.time()
         with open(rules_path, 'r', encoding='utf-8') as f:
-            chunks.extend(chunker.chunk_text(f.read()))
+            content = f.read()
+        log_step(f"Read {rules_path} ({len(content)} chars)", read_start)
+        chunks.extend(chunker.chunk_text(content))
+    else:
+        log_step(f"Warning: {rules_path} not found.")
 
     if os.path.exists(glossary_path):
+        read_start = time.time()
         with open(glossary_path, 'r', encoding='utf-8') as f:
-            chunks.extend(chunker.chunk_text(f.read()))
+            content = f.read()
+        log_step(f"Read {glossary_path} ({len(content)} chars)", read_start)
+        chunks.extend(chunker.chunk_text(content))
+    else:
+        log_step(f"Warning: {glossary_path} not found.")
 
     if chunks:
         # Prevent re-adding if already populated (simplified check)
-        if embedder.get_collection_stats() == 0:
+        stats_start = time.time()
+        stats = embedder.get_collection_stats()
+        log_step("Checked ChromaDB collection stats", stats_start)
+        if stats == 0:
             embedder.add_chunks(chunks)
         else:
-            print("ChromaDB already populated.")
+            log_step("ChromaDB collection already populated, skipping indexing.")
+            
+    log_step("Completed Phase 1 Initialization (knowledge base loading)", init_start)
 
 
 def main():
+    from utils.logger import log_step
+    total_start = time.time()
     # Deferred imports - torch/chromadb only loaded when main() runs
     from src.phase1_ingestion.loaders.metadata_loader import setup_database
     from src.phase1_ingestion.embeddings.embedder import Embedder
 
-    print("=" * 60)
-    print("NLP Semantic Data Pipeline Builder - Phase 1 Ingestion")
-    print("=" * 60)
+    log_step("=" * 60)
+    log_step("NLP Semantic Data Pipeline Builder - Phase 1 Ingestion Starting")
+    log_step("=" * 60)
 
-    db_path = "db/metadata.db"
-    metadata_dir = "metadata"
-    vector_dir = "vector_store"
+    db_path = os.path.join(project_root, "db", "metadata.db")
+    metadata_dir = os.path.join(project_root, "metadata")
+    vector_dir = os.path.join(project_root, "vector_store")
 
     # Ensure folders exist
-    os.makedirs("db", exist_ok=True)
+    os.makedirs(os.path.dirname(db_path), exist_ok=True)
 
     # 1. Setup SQLite
-    print("\n--- [Phase 1] Setting up SQLite Metadata Tables ---")
+    log_step("Step 1: Setting up SQLite Metadata Tables...")
+    step1_start = time.time()
     setup_database(db_path, metadata_dir)
-    print("[SQLite] Metadata setup complete.")
+    log_step("SQLite Metadata Setup complete", step1_start)
 
     # 2. Setup ChromaDB
-    print("\n--- [Phase 1] Splitting Documents & Indexing Vector Embeddings ---")
+    log_step("Step 2: Splitting Documents & Indexing Vector Embeddings in ChromaDB...")
+    step2_start = time.time()
     embedder = Embedder(vector_dir)
     initialize_knowledge_base(embedder)
-    print("[ChromaDB] Embeddings Ingestion complete.")
+    log_step("ChromaDB Embeddings Ingestion complete", step2_start)
 
-    print("\n" + "=" * 60)
-    print("PHASE 1 INGESTION COMPLETE. STORAGE LAYERS READY FOR RETRIEVAL.")
-    print("=" * 60)
+    log_step("PHASE 1 INGESTION COMPLETE. STORAGE LAYERS READY FOR RETRIEVAL.", total_start)
 
 
 if __name__ == "__main__":

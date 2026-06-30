@@ -1,4 +1,6 @@
 import os
+import time
+from utils.logger import log_step
 
 class SQLGenerator:
     def _generate_with_llm(self, prompt):
@@ -39,6 +41,8 @@ class SQLGenerator:
 
     def generate(self, context, extracted_data, question=None):
         """Generates ANSI SQL using LLM if keys are available, falling back to deterministic templates."""
+        start_time = time.time()
+        log_step("Generating ANSI SQL query based on retrieved context and intent details...")
         
         # Define LLM Prompt Template for SQL Generation
         prompt = f"""
@@ -72,14 +76,16 @@ Ensure that:
         try:
             # Attempt Production Flow
             sql = self._generate_with_llm(prompt)
-            print("[LLM Generator] Successfully generated SQL using LLM.")
+            log_step("Successfully generated SQL using LLM.")
             print("\n--- Generated SQL ---")
             print(sql)
+            print("-" * 23)
+            log_step("SQL Generation (LLM) completed", start_time)
             return sql
         except Exception as e:
             # Fallback Flow
-            print(f"[LLM Generator] Fallback triggered: {str(e)}")
-            print("[LLM Generator] Executing local template-based SQL generator...")
+            log_step(f"LLM SQL generation fallback triggered: {str(e)}")
+            log_step("Executing local template-based SQL generator...")
             
             metrics = context.get("metrics", [])
             entities = context.get("entities", [])
@@ -193,8 +199,9 @@ Ensure that:
                         sql += f"ORDER BY 2 DESC\n" 
                     sql += f"LIMIT {f['value']}\n"
                     
-            print("\n--- Generated SQL (Deterministic Fallback) ---")
+            log_step("Generated SQL (Deterministic Fallback):")
             print(sql)
-            
+            print("-" * 43)
+            log_step("SQL Generation (Fallback) completed", start_time)
             return sql
 

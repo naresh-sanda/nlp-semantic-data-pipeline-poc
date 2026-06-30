@@ -1,18 +1,27 @@
 import os
+import time
+from utils.logger import log_step
 
 class Chunker:
     def __init__(self, strategy="fixed"):
         self.strategy = strategy
 
     def chunk_text(self, text, metadata=None):
-        if self.strategy == "fixed":
-            return self._fixed_chunking(text, chunk_size=200)
-        elif self.strategy == "recursive":
-            return self._recursive_chunking(text)
-        elif self.strategy == "metadata-aware":
-            return self._metadata_aware_chunking(text, metadata)
+        start_time = time.time()
+        strategy = self.strategy
+        log_step(f"Splitting text using strategy '{strategy}'...")
+        
+        if strategy == "fixed":
+            chunks = self._fixed_chunking(text, chunk_size=200)
+        elif strategy == "recursive":
+            chunks = self._recursive_chunking(text)
+        elif strategy == "metadata-aware":
+            chunks = self._metadata_aware_chunking(text, metadata)
         else:
-            raise ValueError(f"Unknown strategy: {self.strategy}")
+            raise ValueError(f"Unknown strategy: {strategy}")
+            
+        log_step(f"Split into {len(chunks)} chunks", start_time)
+        return chunks
 
     def _fixed_chunking(self, text, chunk_size=200):
         """Splits text into fixed character chunks."""

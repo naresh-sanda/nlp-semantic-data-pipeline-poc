@@ -1,6 +1,8 @@
 import re
 import os
 import json
+import time
+from utils.logger import log_step
 
 class NLPAnalyzer:
     def __init__(self):
@@ -36,6 +38,8 @@ class NLPAnalyzer:
 
     def analyze(self, question):
         """Extracts entities, metrics, dimensions, and time periods from a question."""
+        start_time = time.time()
+        log_step(f"Starting NLP Analysis for query: '{question}'...")
         
         # Define LLM Prompt Template
         prompt = f"""
@@ -56,18 +60,18 @@ Return JSON in this format:
 }}
 Return ONLY raw JSON.
 """
-        print("\n--- [LLM Query Planner Prompt Template] ---")
+        log_step("Prepared LLM Query Planner Prompt Template:")
         print(prompt.strip())
         print("-" * 43)
 
         try:
             # Attempt Production Flow
             extracted = self._analyze_with_llm(question, prompt)
-            print("[LLM Parser] Successfully extracted intent using LLM.")
+            log_step("Successfully extracted intent using LLM.")
         except Exception as e:
             # Fallback Flow
-            print(f"[LLM Parser] Fallback triggered: {str(e)}")
-            print("[LLM Parser] Executing local deterministic parser...")
+            log_step(f"LLM intent extraction fallback triggered: {str(e)}")
+            log_step("Executing local deterministic intent parser...")
             
             question_lower = question.lower()
             extracted = {
@@ -97,8 +101,5 @@ Return ONLY raw JSON.
             if top_match:
                 extracted["filters"].append({"type": "limit", "value": int(top_match.group(1))})
 
-        print("\n--- Question Analyzer ---")
-        print(f"Question: {question}")
-        print(f"Extracted: {extracted}")
-        
+        log_step(f"NLP intent extraction completed. Extracted: {extracted}", start_time)
         return extracted

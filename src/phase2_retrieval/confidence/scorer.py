@@ -1,5 +1,7 @@
 import os
 import json
+import time
+from utils.logger import log_step
 
 class ConfidenceScorer:
     def _score_with_llm(self, prompt):
@@ -28,6 +30,8 @@ class ConfidenceScorer:
         raise ValueError("No LLM API keys found (OPENAI_API_KEY or GOOGLE_API_KEY).")
 
     def calculate_score(self, context, extracted_data, rag_results):
+        start_time = time.time()
+        log_step("Evaluating confidence score mapping question intent to schema context and rules...")
         # Define LLM Confidence Prompt Template
         prompt = f"""
 You are a Data Warehouse NLP Confidence Assessor. Assess the confidence score (from 0 to 100) of mapping the user question to the database schema context and retrieved business rules.
@@ -67,13 +71,14 @@ Return ONLY raw JSON.
             result = self._score_with_llm(prompt)
             score = int(result.get("score", 0))
             reasoning = result.get("reasoning", "No reasoning provided.")
-            print(f"[LLM Confidence Engine] Successfully evaluated score: {score}/100")
-            print(f"[LLM Confidence Engine] Reasoning: {reasoning}")
+            log_step(f"LLM Confidence Engine successfully evaluated score: {score}/100")
+            log_step(f"LLM Confidence Reasoning: {reasoning}")
+            log_step("Confidence Scoring (LLM) completed", start_time)
             return score
         except Exception as e:
             # Fallback Flow
-            print(f"[LLM Confidence Engine] Fallback triggered: {str(e)}")
-            print("[LLM Confidence Engine] Executing local rule-based confidence scorer...")
+            log_step(f"LLM Confidence Engine fallback triggered: {str(e)}")
+            log_step("Executing local rule-based confidence scorer...")
             
             score = 0
             factors = {}
@@ -112,23 +117,27 @@ Return ONLY raw JSON.
             factors["Question Understanding"] = understanding_score
             score += understanding_score
 
-            print("\n--- Confidence Engine (Deterministic Fallback) ---")
-            for k, v in factors.items():
-                print(f"{k}: {v}")
-            print(f"Total Confidence Score: {score}/100")
+            log_step(f"Deterministic Fallback Confidence Factors: {factors}")
+            log_step(f"Total Confidence Score: {score}/100")
+            log_step("Confidence Scoring (Fallback) completed", start_time)
             
             return score
 
 class ClarificationEngine:
     def check_needs_clarification(self, score, extracted_data, context):
+        start_time = time.time()
+        log_step("Checking if confidence score requires user clarification...")
+        
+        clarified = False
         if score < 70:
             if not context["metrics"] or not context["entities"]:
-                print("\n--- Clarification Required ---")
-                print("Confidence is below 70. Please clarify:")
+                log_step("Confidence is below 70. Clarification Required:")
                 if not context["metrics"]:
-                    print("- Which specific metric are you looking for? (e.g., Gross Revenue, Net Revenue, Profit?)")
+                    log_step("- Which specific metric are you looking for? (e.g., Gross Revenue, Net Revenue, Profit?)")
                 if not context["entities"]:
-                    print("- By which dimension would you like to see this? (e.g., by Customer, by Region?)")
-                return True
-        return False
+                    log_step("- By which dimension would you like to see this? (e.g., by Customer, by Region?)")
+                clarified = True
+        
+        log_step(f"Clarification Engine completed. Needs Clarification: {clarified}", start_time)
+        return clarified
 

@@ -1,4 +1,6 @@
 import os
+import time
+from utils.logger import log_step
 
 class RAGRetriever:
     def __init__(self, db_dir):
@@ -22,9 +24,14 @@ class RAGRetriever:
 
     def retrieve(self, query, top_k=3, threshold=0.3):
         """Retrieves chunks from ChromaDB using Vector Search, or falls back to keyword-overlap search."""
+        start_time = time.time()
+        log_step(f"Retrieving semantic rules for query: '{query}'...")
+        
         if self.use_fallback:
-            print("[RAG Retriever] Fallback triggered. Executing local keyword-overlap retriever...")
-            return self._fallback_retrieve(query, top_k, threshold)
+            log_step("ChromaDB vector DB fallback triggered. Executing local keyword-overlap retriever...")
+            results = self._fallback_retrieve(query, top_k, threshold)
+            log_step("RAG Retrieval (Fallback) completed", start_time)
+            return results
             
         try:
             query_embedding = self.model.encode([query]).tolist()
@@ -56,19 +63,18 @@ class RAGRetriever:
                 retrieved_chunks.sort(key=lambda x: x["final_hybrid_score"], reverse=True)
                 retrieved_chunks = retrieved_chunks[:top_k]
 
-            print("\n--- RAG Retrieval (Vector DB) ---")
+            log_step("RAG Retrieval (Vector DB) complete. Matches found:")
             for i, chunk in enumerate(retrieved_chunks):
-                print(f"Chunk {i+1}:")
-                print(f"  Vector Score: {chunk['vector_score']:.2f}")
-                print(f"  BM25 Score:   {chunk['bm25_score']:.2f}")
-                print(f"  Final Score:  {chunk['final_hybrid_score']:.2f}")
-                print(f"  Content: {chunk['chunk'][:100]}...")
+                print(f"  Match {i+1}: Final Score: {chunk['final_hybrid_score']:.2f} | Content: {chunk['chunk'][:80].strip()}...")
 
+            log_step("RAG Retrieval (Vector DB) completed", start_time)
             return retrieved_chunks
         except Exception as e:
-            print(f"[RAG Retriever] Vector DB query failed: {str(e)}")
-            print("[RAG Retriever] Fallback triggered. Executing local keyword-overlap retriever...")
-            return self._fallback_retrieve(query, top_k, threshold)
+            log_step(f"Vector DB query failed: {str(e)}")
+            log_step("Executing local keyword-overlap retriever...")
+            results = self._fallback_retrieve(query, top_k, threshold)
+            log_step("RAG Retrieval (Fallback after error) completed", start_time)
+            return results
 
     def _fallback_retrieve(self, query, top_k=3, threshold=0.1):
         """Pure Python fallback retriever using word overlap against business rules and glossary."""
@@ -113,13 +119,8 @@ class RAGRetriever:
         retrieved_chunks.sort(key=lambda x: x["final_hybrid_score"], reverse=True)
         retrieved = retrieved_chunks[:top_k]
         
-        print("\n--- RAG Retrieval (Local Fallback) ---")
+        log_step("RAG Retrieval (Local Fallback) matches:")
         for i, chunk in enumerate(retrieved):
-            print(f"Chunk {i+1}:")
-            print(f"  Overlap Score: {chunk['vector_score']:.2f}")
-            print(f"  Sim BM25 Score: {chunk['bm25_score']:.2f}")
-            print(f"  Final Score:   {chunk['final_hybrid_score']:.2f}")
-            print(f"  Content: {chunk['chunk'][:100]}...")
+            log_step(f"  Match {i+1}: Final Score: {chunk['final_hybrid_score']:.2f} | Content: {chunk['chunk'][:80].strip()}...")
             
         return retrieved
-

@@ -3,6 +3,7 @@ os.environ["OPENBLAS_NUM_THREADS"] = "1"
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 import sys
+import time
 
 # Add project root and src to Python path
 project_root = os.path.dirname(os.path.abspath(__file__))
@@ -12,6 +13,8 @@ sys.path.append(os.path.join(project_root, 'src'))
 
 
 def main():
+    from utils.logger import log_step
+    total_start = time.time()
     # Deferred imports - torch/chromadb are only loaded when main() runs
     from src.phase2_retrieval.analyzer.nlp_analyzer import NLPAnalyzer
     from src.phase2_retrieval.metadata_lookup.lookup_engine import LookupEngine
@@ -20,22 +23,22 @@ def main():
     from src.phase2_retrieval.sql_generator.generator import SQLGenerator
     from src.phase2_retrieval.confidence.scorer import ConfidenceScorer, ClarificationEngine
 
-    db_path = "db/metadata.db"
-    vector_dir = "vector_store"
+    db_path = os.path.join(project_root, "db", "metadata.db")
+    vector_dir = os.path.join(project_root, "vector_store")
 
     # Check if Phase 1 was run
     chroma_db_file = os.path.join(vector_dir, "chroma.sqlite3")
     if not os.path.exists(db_path) or not os.path.exists(chroma_db_file):
-        print("!" * 60)
-        print("ERROR: Storage indexes not found!")
-        print("Please run Phase 1 Ingestion first to build databases:")
-        print("python run_phase1_ingestion.py")
-        print("!" * 60)
+        log_step("!" * 60)
+        log_step("ERROR: Storage indexes not found!")
+        log_step(f"Searched db_path: {db_path} and vector_dir: {vector_dir}")
+        log_step("Please run Phase 1 Ingestion first to build databases: python run_phase1_ingestion.py")
+        log_step("!" * 60)
         return
 
-    print("=" * 60)
-    print("NLP Semantic Data Pipeline Builder - Phase 2 Retrieval")
-    print("=" * 60)
+    log_step("=" * 60)
+    log_step("NLP Semantic Data Pipeline Builder - Phase 2 Retrieval Starting")
+    log_step("=" * 60)
 
     # Initialize Engines
     analyzer = NLPAnalyzer()
@@ -57,9 +60,10 @@ def main():
     ]
 
     for q in test_questions:
-        print("\n" + "=" * 60)
-        print(f"PROCESSING RUNTIME QUERY: '{q}'")
-        print("=" * 60)
+        query_start = time.time()
+        log_step("=" * 60)
+        log_step(f"PROCESSING RUNTIME QUERY: '{q}'")
+        log_step("=" * 60)
 
         # 1. Analyze Question Intent
         extracted_data = analyzer.analyze(q)
@@ -81,10 +85,12 @@ def main():
 
         # 7. Check if clarification is required
         clarification_engine.check_needs_clarification(score, extracted_data, context)
+        
+        log_step(f"[QUERY LIFECYCLE] Finished processing query: '{q}'", query_start)
 
-    print("\n" + "=" * 60)
-    print("PHASE 2 RETRIEVAL DEMO RUN COMPLETE.")
-    print("=" * 60)
+    log_step("=" * 60)
+    log_step("PHASE 2 RETRIEVAL DEMO RUN COMPLETE.", total_start)
+    log_step("=" * 60)
 
 
 if __name__ == "__main__":

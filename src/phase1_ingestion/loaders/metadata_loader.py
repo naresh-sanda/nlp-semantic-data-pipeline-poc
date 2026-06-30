@@ -2,6 +2,8 @@ import sqlite3
 import csv
 import json
 import os
+import time
+from utils.logger import log_step
 
 
 def _csv_to_sqlite(conn, table_name, file_path):
@@ -32,6 +34,9 @@ def setup_database(db_path, metadata_dir):
     Load CSV and JSON metadata into SQLite.
     Uses pure stdlib (csv, sqlite3, json) — no pandas dependency.
     """
+    start_time = time.time()
+    log_step("Starting SQLite database creation & metadata import...")
+    
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
     conn = sqlite3.connect(db_path)
 
@@ -47,14 +52,16 @@ def setup_database(db_path, metadata_dir):
     for table_name, filename in csv_files.items():
         file_path = os.path.join(metadata_dir, filename)
         if os.path.exists(file_path):
+            csv_start = time.time()
             count = _csv_to_sqlite(conn, table_name, file_path)
-            print(f"  Loaded {count} records into {table_name}")
+            log_step(f"Loaded {count} records into '{table_name}' from {filename}", csv_start)
         else:
-            print(f"  Warning: {file_path} not found.")
+            log_step(f"Warning: {file_path} not found.")
 
     # Load Workspace Config JSON
     config_path = os.path.join(metadata_dir, 'workspace_config.json')
     if os.path.exists(config_path):
+        json_start = time.time()
         with open(config_path, 'r', encoding='utf-8') as f:
             config_data = json.load(f)
 
@@ -69,13 +76,14 @@ def setup_database(db_path, metadata_dir):
                 f'INSERT INTO "workspace_config" VALUES ({placeholders})',
                 [tuple(str(ws.get(c, '')) for c in columns) for ws in workspaces]
             )
-            print(f"  Loaded {len(workspaces)} workspaces into workspace_config")
+            log_step(f"Loaded {len(workspaces)} workspaces into 'workspace_config'", json_start)
     else:
-        print(f"  Warning: {config_path} not found.")
+        log_step(f"Warning: {config_path} not found.")
 
     conn.commit()
     conn.close()
-    print("  Database setup complete.")
+    
+    log_step("Completed SQLite database creation & metadata import", start_time)
 
 
 if __name__ == "__main__":

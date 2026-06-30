@@ -1,4 +1,6 @@
 import os
+import time
+from utils.logger import log_step
 
 class Embedder:
     def __init__(self, db_dir):
@@ -23,27 +25,34 @@ class Embedder:
                 dim = self.model.get_sentence_embedding_dimension()
             except AttributeError:
                 dim = self.model[0].get_word_embedding_dimension() if hasattr(self.model, '__getitem__') else 384
-            print(f"Embedder initialized. Embedding dimensions: {dim}")
+            log_step(f"Embedder initialized. Embedding dimensions: {dim}")
         except Exception as e:
-            print(f"[Embedder] Initialization failed: {str(e)}")
-            print("[Embedder] Fallback mode active: will skip actual vector DB inserts.")
+            log_step(f"Initialization failed: {str(e)}")
+            log_step("Fallback mode active: will skip actual vector DB inserts.")
             self.use_fallback = True
 
     def add_chunks(self, chunks, metadatas=None):
         if not chunks:
             return
             
+        start_time = time.time()
+        log_step(f"Indexing {len(chunks)} chunks to vector DB...")
+        
         if self.use_fallback:
-            print(f"[Embedder Fallback] Simulating chunk storage for {len(chunks)} chunks.")
+            log_step(f"Simulating chunk storage for {len(chunks)} chunks (Fallback Mode)", start_time)
             return
             
         try:
+            encode_start = time.time()
             embeddings = self.model.encode(chunks).tolist()
+            log_step(f"Generated {len(chunks)} embeddings", encode_start)
+            
             ids = [f"chunk_{i}" for i in range(len(chunks))]
             
             if metadatas is None:
                 metadatas = [{"source": "unknown"} for _ in chunks]
 
+            upsert_start = time.time()
             # Use upsert to handle re-ingestion without duplicate ID errors
             self.collection.upsert(
                 embeddings=embeddings,
@@ -51,10 +60,11 @@ class Embedder:
                 metadatas=metadatas,
                 ids=ids
             )
-            print(f"Added/Updated {len(chunks)} chunks in ChromaDB collection.")
+            log_step(f"Added/Updated {len(chunks)} chunks in ChromaDB collection", upsert_start)
+            log_step("Vector DB Ingestion completed", start_time)
         except Exception as e:
-            print(f"[Embedder] Failed to add chunks to ChromaDB: {str(e)}")
-            print("[Embedder] Fallback active: simulated insertion.")
+            log_step(f"Failed to add chunks to ChromaDB: {str(e)}")
+            log_step("Fallback active: simulated insertion completed", start_time)
 
     def get_collection_stats(self):
         if self.use_fallback or not self.collection:

@@ -1,6 +1,8 @@
 import sqlite3
 import os
 import csv
+import time
+from utils.logger import log_step
 
 class LookupEngine:
     def __init__(self, db_path):
@@ -11,6 +13,8 @@ class LookupEngine:
 
     def lookup(self, extracted_data):
         """Lookup metadata using SQLite, with a fallback to local CSV parsing on failure."""
+        start_time = time.time()
+        log_step("Querying database schemas and metric definitions...")
         try:
             conn = self._get_connection()
             cursor = conn.cursor()
@@ -55,14 +59,15 @@ class LookupEngine:
                      results["relationships"].append({"source": row[0], "target": row[1], "type": row[2]})
                      
             conn.close()
-            print("\n--- Metadata Lookup (SQLite) ---")
-            print(f"Results: {results}")
+            log_step(f"Metadata Lookup (SQLite) completed: {results}", start_time)
             return results
 
         except Exception as e:
-            print(f"[Lookup Engine] SQLite lookup failed: {str(e)}")
-            print("[Lookup Engine] Fallback triggered. Executing local CSV metadata lookup...")
-            return self._fallback_lookup(extracted_data)
+            log_step(f"SQLite lookup failed: {str(e)}")
+            log_step("Executing local CSV metadata lookup...")
+            results = self._fallback_lookup(extracted_data)
+            log_step("Metadata Lookup (Fallback) completed", start_time)
+            return results
 
     def _fallback_lookup(self, extracted_data):
         """Pure Python fallback parsing semantic CSV files directly."""
@@ -129,7 +134,6 @@ class LookupEngine:
             except Exception as e:
                 print(f"[Lookup Engine Fallback] Failed to read relationships CSV: {str(e)}")
                 
-        print("\n--- Metadata Lookup (Local Fallback) ---")
-        print(f"Results: {results}")
+        log_step(f"Local Fallback Lookup completed: {results}")
         return results
 
