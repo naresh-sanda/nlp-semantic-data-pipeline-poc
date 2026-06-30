@@ -1671,103 +1671,106 @@ public class ConfidenceEngine {
       if (activeSubTab === 'log') {
         if (activeStep === 'init') {
           html += `<span class="console-comment"># Initializing metadata store and caching semantic rules</span>\n`;
-          html += `>>> <span class="console-accent">phase1_ingestion.loaders.metadata_loader.setup_database("db/metadata.db", "metadata")</span>\n`;
-          html += `[SQLite] Loaded 8 records into <span class="console-string">semantic_entities</span>\n`;
-          html += `[SQLite] Loaded 6 records into <span class="console-string">semantic_metrics</span>\n`;
-          html += `[SQLite] Loaded 5 records into <span class="console-string">semantic_relationships</span>\n`;
-          html += `[SQLite] Loaded 10 records into <span class="console-string">semantic_source_mappings</span>\n`;
-          html += `[SQLite] Loaded 5 records into <span class="console-string">semantic_metric_mappings</span>\n`;
-          html += `[SQLite] Database initialization complete.\n\n`;
-          html += `>>> <span class="console-accent">phase1_ingestion.embeddings.embedder.Embedder("vector_store")</span>\n`;
-          html += `[ChromaDB] Embedder initialized. Model: <span class="console-string">all-MiniLM-L6-v2</span> | Dimensions: <span class="console-keyword">384</span>\n`;
-          html += `[ChromaDB] Collection size: <span class="console-keyword">11 documents</span>\n`;
-          html += `[ChromaDB] Vector index populated and ready for semantic retrieval.\n`;
-          html += `<span class="console-comment">(Note: If ChromaDB or PyTorch initialization fails, Embedder falls back to simulation mode)</span>`;
+          html += `[run_phase1_ingestion.py:79] Step 1: Setting up SQLite Metadata Tables...\n`;
+          html += `[src/phase1_ingestion/loaders/metadata_loader.py:38] Starting SQLite database creation & metadata import...\n`;
+          html += `[src/phase1_ingestion/loaders/metadata_loader.py:57] Loaded 8 records into <span class="console-string">'semantic_entities'</span> from semantic_entities.csv (took 0.0295s)\n`;
+          html += `[src/phase1_ingestion/loaders/metadata_loader.py:57] Loaded 6 records into <span class="console-string">'semantic_metrics'</span> from semantic_metrics.csv (took 0.0008s)\n`;
+          html += `[src/phase1_ingestion/loaders/metadata_loader.py:57] Loaded 5 records into <span class="console-string">'semantic_relationships'</span> from semantic_relationships.csv (took 0.0006s)\n`;
+          html += `[src/phase1_ingestion/loaders/metadata_loader.py:57] Loaded 10 records into <span class="console-string">'semantic_source_mappings'</span> from semantic_source_mappings.csv (took 0.0009s)\n`;
+          html += `[src/phase1_ingestion/loaders/metadata_loader.py:57] Loaded 5 records into <span class="console-string">'semantic_metric_mappings'</span> from semantic_metric_mappings.csv (took 0.0010s)\n`;
+          html += `[src/phase1_ingestion/loaders/metadata_loader.py:79] Loaded 1 workspaces into <span class="console-string">'workspace_config'</span> (took 0.0011s)\n`;
+          html += `[src/phase1_ingestion/loaders/metadata_loader.py:86] Completed SQLite database creation & metadata import (took 0.0434s)\n`;
+          html += `[run_phase1_ingestion.py:82] SQLite Metadata Setup complete (took 0.0436s)\n\n`;
+          html += `[run_phase1_ingestion.py:85] Step 2: Splitting Documents & Indexing Vector Embeddings in ChromaDB...\n`;
+          html += `[src/phase1_ingestion/embeddings/embedder.py:28] Embedder initialized. Embedding dimensions: <span class="console-keyword">384</span>\n`;
+          html += `[run_phase1_ingestion.py:21] Starting Phase 1 Initialization (knowledge base loading)...\n`;
+          html += `[run_phase1_ingestion.py:33] Read D:\\anvizent-datapipeline-nlp-poc\\ai_dw_nlp_poc\\metadata\\semantic_business_rules.txt (806 chars) (took 0.0007s)\n`;
+          html += `[src/phase1_ingestion/chunking/chunker.py:12] Splitting text using strategy 'metadata-aware'...\n`;
+          html += `[src/phase1_ingestion/chunking/chunker.py:23] Split into 6 chunks (took 0.0607s)\n`;
+          html += `[run_phase1_ingestion.py:42] Read D:\\anvizent-datapipeline-nlp-poc\\ai_dw_nlp_poc\\metadata\\semantic_glossary.txt (582 chars) (took 0.0004s)\n`;
+          html += `[src/phase1_ingestion/chunking/chunker.py:12] Splitting text using strategy 'metadata-aware'...\n`;
+          html += `[src/phase1_ingestion/chunking/chunker.py:23] Split into 5 chunks (took 0.0005s)\n`;
+          html += `[run_phase1_ingestion.py:51] Checked ChromaDB collection stats (took 0.0170s)\n`;
+          html += `[run_phase1_ingestion.py:55] ChromaDB collection already populated, skipping indexing.\n`;
+          html += `[run_phase1_ingestion.py:57] Completed Phase 1 Initialization (knowledge base loading) (took 0.0802s)\n`;
+          html += `[run_phase1_ingestion.py:89] ChromaDB Embeddings Ingestion complete (took 13.6740s)\n`;
+          html += `[run_phase1_ingestion.py:91] PHASE 1 INGESTION COMPLETE. STORAGE LAYERS READY FOR RETRIEVAL (took 13.7472s)\n`;
         } 
         else if (activeStep === 'analyze') {
           html += `<span class="console-comment"># Parsing natural language query into structural categories</span>\n`;
-          html += `>>> <span class="console-accent">phase2_retrieval.analyzer.nlp_analyzer.NLPAnalyzer().analyze("${data.query}")</span>\n\n`;
-          html += `<span class="console-comment">--- [LLM Query Planner Prompt Template] ---</span>\n`;
-          html += `<span class="console-comment">You are a Data Warehouse NLP Planner. Extract metrics, entities, time grains...\n`;
-          html += `Allowed metrics: ['revenue', 'profit', 'margin', 'orders', 'customers', 'sales', 'aov']\n`;
-          html += `Allowed entities: ['customer', 'region', 'product', 'supplier', 'warehouse']\n`;
-          html += `User Question: "${data.query}"</span>\n`;
-          html += `<span class="console-comment">-------------------------------------------</span>\n`;
-          html += `[LLM Parser] Fallback triggered: No LLM API keys found (OPENAI_API_KEY or GOOGLE_API_KEY).\n`;
-          html += `[LLM Parser] Executing local deterministic parser...\n\n`;
+          html += `[src/phase2_retrieval/analyzer/nlp_analyzer.py:42] Starting NLP Analysis for query: '${data.query}'...\n`;
+          html += `[src/phase2_retrieval/analyzer/nlp_analyzer.py:63] Prepared LLM Query Planner Prompt Template:\n`;
+          html += `<span class="console-comment">  You are a Data Warehouse NLP Planner. Extract metrics, entities, time grains, and limit filters...\n`;
+          html += `  Allowed metrics: ['revenue', 'profit', 'margin', 'orders', 'customers', 'sales', 'aov']\n`;
+          html += `  Allowed entities: ['customer', 'region', 'product', 'supplier', 'warehouse']\n`;
+          html += `  User Question: "${data.query}"</span>\n`;
+          html += `[src/phase2_retrieval/analyzer/nlp_analyzer.py:73] LLM intent extraction fallback triggered: No LLM API keys found (OPENAI_API_KEY or GOOGLE_API_KEY).\n`;
+          html += `[src/phase2_retrieval/analyzer/nlp_analyzer.py:74] Executing local deterministic parser...\n`;
+          html += `[src/phase2_retrieval/analyzer/nlp_analyzer.py:84] Extracted intent (Local Fallback) (took 0.0012s):\n\n`;
           html += `<span class="console-keyword">Extracted tokens payload:</span>\n`;
           html += JSON.stringify(data.analyzer, null, 2);
         } 
         else if (activeStep === 'lookup') {
           html += `<span class="console-comment"># Querying SQLite tables to match tokens against schema vocabulary</span>\n`;
-          html += `>>> <span class="console-accent">phase2_retrieval.metadata_lookup.lookup_engine.LookupEngine("db/metadata.db").lookup(...)</span>\n\n`;
-          html += `<span class="console-comment"># If database file is missing or locked:</span>\n`;
-          html += `[Lookup Engine] SQLite lookup failed: (Simulated SQLite operational error)\n`;
-          html += `[Lookup Engine] Fallback triggered. Executing local CSV metadata lookup...\n`;
-          html += `--- Metadata Lookup (Local Fallback) ---\n`;
+          html += `[src/phase2_retrieval/metadata_lookup/lookup_engine.py:17] Querying database schemas and metric definitions...\n`;
+          html += `[src/phase2_retrieval/metadata_lookup/lookup_engine.py:66] SQLite lookup failed: (Simulated SQLite operational error)\n`;
+          html += `[src/phase2_retrieval/metadata_lookup/lookup_engine.py:67] Executing local CSV metadata lookup...\n`;
+          html += `[src/phase2_retrieval/metadata_lookup/lookup_engine.py:137] Local Fallback Lookup completed: [records found]\n`;
+          html += `[src/phase2_retrieval/metadata_lookup/lookup_engine.py:69] Metadata Lookup (Fallback) completed (took 0.0047s)\n\n`;
           html += `<span class="console-keyword">Matched Database Schema details:</span>\n`;
           html += JSON.stringify(data.lookup, null, 2);
         } 
         else if (activeStep === 'retrieve') {
           html += `<span class="console-comment"># Running vector search inside ChromaDB for business rules</span>\n`;
-          html += `>>> <span class="console-accent">phase2_retrieval.retrieval.rag_retriever.RAGRetriever("vector_store").retrieve("${data.query}")</span>\n\n`;
-          html += `[RAG Retriever] Fallback triggered: (Simulated embedding/ChromaDB exception or fallback mode active)\n`;
-          html += `[RAG Retriever] Executing local keyword-overlap retriever...\n`;
-          html += `--- RAG Retrieval (Local Fallback) ---\n`;
+          html += `[src/phase2_retrieval/retrieval/rag_retriever.py:28] Retrieving semantic rules for query: '${data.query}'...\n`;
+          html += `[src/phase2_retrieval/retrieval/rag_retriever.py:73] Vector DB query failed: (Simulated embedding/ChromaDB exception or fallback mode active)\n`;
+          html += `[src/phase2_retrieval/retrieval/rag_retriever.py:74] Executing local keyword-overlap retriever...\n`;
+          html += `[src/phase2_retrieval/retrieval/rag_retriever.py:122] RAG Retrieval (Local Fallback) matches:\n`;
           if (data.retrieve.length === 0) {
-            html += `Local overlap retriever returned <span class="console-keyword">0 results</span>.`;
+            html += `  Local overlap retriever returned <span class="console-keyword">0 results</span>.\n`;
           } else {
             data.retrieve.forEach((item, index) => {
-              html += `<span class="console-accent">Chunk ${index + 1}:</span>\n`;
-              html += `  Overlap Score:  <span class="console-keyword">${item.similarity}</span>\n`;
-              html += `  Sim BM25 Score: <span class="console-keyword">${(item.similarity * 0.9).toFixed(2)}</span>\n`;
-              html += `  Final Score:   <span class="console-keyword">${((item.similarity * 0.7) + (item.similarity * 0.9 * 0.3)).toFixed(2)}</span>\n`;
-              html += `  Content: "${item.content.substring(0, 120)}..."\n\n`;
+              html += `  [src/phase2_retrieval/retrieval/rag_retriever.py:124] Match ${index + 1}: Final Score: <span class="console-keyword">${((item.similarity * 0.7) + (item.similarity * 0.9 * 0.3)).toFixed(2)}</span> | Content: "${item.content.substring(0, 80)}..."\n`;
             });
           }
+          html += `[src/phase2_retrieval/retrieval/rag_retriever.py:76] RAG Retrieval (Fallback after error) completed (took 0.0219s)\n`;
         } 
         else if (activeStep === 'context') {
           html += `<span class="console-comment"># Building payload by merging schema mappings and unstructured business rules</span>\n`;
-          html += `>>> <span class="console-accent">phase2_retrieval.context_builder.builder.ContextBuilder().build_context(...)</span>\n\n`;
+          html += `[src/phase2_retrieval/context_builder/builder.py:9] Assembling LLM Prompt Context by merging metadata schemas and retrieved rules...\n`;
+          html += `[src/phase2_retrieval/context_builder/builder.py:18] Unified Context Object:\n\n`;
           html += `<span class="console-keyword">Constructed context object:</span>\n`;
-          html += JSON.stringify(data.context, null, 2);
+          html += JSON.stringify(data.context, null, 2) + `\n`;
+          html += `[src/phase2_retrieval/context_builder/builder.py:21] Context Construction completed (took 0.0011s)\n`;
         } 
         else if (activeStep === 'generate') {
           html += `<span class="console-comment"># Generating final SQL query using LLM or local templates</span>\n`;
-          html += `>>> <span class="console-accent">phase2_retrieval.sql_generator.generator.SQLGenerator().generate(context, extracted)</span>\n\n`;
-          html += `<span class="console-comment">--- [LLM SQL Generator Prompt Template] ---</span>\n`;
-          html += `<span class="console-comment">You are a SQL Expert for an ANSI-compliant Data Warehouse. Generate an ANSI SQL query...\n`;
-          html += `Database Context: Matched Entities: ${JSON.stringify(data.context.entities)}...\n`;
-          html += `Retrieved Semantic Business Rules: ${JSON.stringify(data.context.business_rules)}...\n`;
-          html += `User Question: "${data.query}"</span>\n`;
-          html += `<span class="console-comment">--------------------------------------------</span>\n`;
-          html += `[LLM Generator] Fallback triggered: No LLM API keys found (OPENAI_API_KEY or GOOGLE_API_KEY).\n`;
-          html += `[LLM Generator] Executing local template-based SQL generator...\n`;
-          html += `--- Generated SQL (Deterministic Fallback) ---\n\n`;
-          html += `<span style="color: #ff9e64; font-weight: bold;">${data.sql}</span>`;
+          html += `[src/phase2_retrieval/sql_generator/generator.py:45] Generating ANSI SQL query based on retrieved context and intent details...\n`;
+          html += `[src/phase2_retrieval/sql_generator/generator.py:87] LLM SQL generation fallback triggered: No LLM API keys found (OPENAI_API_KEY or GOOGLE_API_KEY).\n`;
+          html += `[src/phase2_retrieval/sql_generator/generator.py:88] Executing local template-based SQL generator...\n`;
+          html += `[src/phase2_retrieval/sql_generator/generator.py:202] Generated SQL (Deterministic Fallback):\n`;
+          html += `  <span style="color: #ff9e64; font-weight: bold;">${data.sql}</span>\n`;
+          html += `[src/phase2_retrieval/sql_generator/generator.py:205] SQL Generation (Fallback) completed (took 0.0381s)\n`;
         } 
         else if (activeStep === 'score') {
           html += `<span class="console-comment"># Scoring pipeline confidence and checking if clarification is required</span>\n`;
-          html += `>>> <span class="console-accent">phase2_retrieval.confidence.scorer.ConfidenceScorer().calculate_score(...)</span>\n\n`;
-          html += `<span class="console-comment">--- [LLM Confidence Prompt Template] ---</span>\n`;
-          html += `<span class="console-comment">You are a Data Warehouse NLP Confidence Assessor. Assess the confidence score...\n`;
-          html += `Extracted Intent: Metrics: ${JSON.stringify(data.analyzer.metrics)}, Entities: ${JSON.stringify(data.analyzer.entities)}</span>\n`;
-          html += `<span class="console-comment">-----------------------------------------</span>\n`;
-          html += `[LLM Confidence Engine] Fallback triggered: No LLM API keys found.\n`;
-          html += `[LLM Confidence Engine] Executing local rule-based confidence scorer...\n`;
-          html += `--- Confidence Engine (Deterministic Fallback) ---\n`;
+          html += `[src/phase2_retrieval/confidence/scorer.py:34] Evaluating confidence score mapping question intent to schema context and rules...\n`;
+          html += `[src/phase2_retrieval/confidence/scorer.py:80] LLM Confidence Engine fallback triggered: No LLM API keys found.\n`;
+          html += `[src/phase2_retrieval/confidence/scorer.py:81] Executing local rule-based confidence scorer...\n`;
+          html += `[src/phase2_retrieval/confidence/scorer.py:120] Deterministic Fallback Confidence Factors:\n`;
           Object.entries(data.confidence.factors).forEach(([factor, score]) => {
             html += `  ${factor}: <span class="console-keyword">${score}</span>\n`;
           });
-          html += `  Total Confidence Score: <span class="console-accent">${data.confidence.score}/100</span>\n\n`;
+          html += `[src/phase2_retrieval/confidence/scorer.py:121] Total Confidence Score: <span class="console-accent">${data.confidence.score}/100</span>\n`;
+          html += `[src/phase2_retrieval/confidence/scorer.py:122] Confidence Scoring (Fallback) completed (took 0.0015s)\n\n`;
           
-          html += `>>> <span class="console-accent">phase2_retrieval.confidence.scorer.ClarificationEngine().check_needs_clarification(...)</span>\n`;
+          html += `[src/phase2_retrieval/confidence/scorer.py:129] Checking if confidence score requires user clarification...\n`;
           if (data.confidence.clarify) {
-            html += `<span style="color: var(--accent); font-weight: bold;">[CLARIFICATION REQUIRED]</span> Confidence is below 70.\n`;
-            html += `Clarification details printed to user:\n`;
-            html += `<span class="console-string">${data.confidence.clarification_details}</span>`;
+            html += `[src/phase2_retrieval/confidence/scorer.py:134] Confidence is below 70. Clarification Required:\n`;
+            html += `[src/phase2_retrieval/confidence/scorer.py:136]   - Which specific metric are you looking for? (e.g., Gross Revenue, Net Revenue, Profit?)\n`;
+            html += `[src/phase2_retrieval/confidence/scorer.py:141] Clarification Engine completed. Needs Clarification: <span style="color: var(--accent); font-weight: bold;">True</span> (took 0.0004s)\n`;
           } else {
-            html += `<span style="color: #9ece6a; font-weight: bold;">[NO CLARIFICATION NEEDED]</span> Confidence satisfies threshold (>= 70).`;
+            html += `[src/phase2_retrieval/confidence/scorer.py:141] Clarification Engine completed. Needs Clarification: <span style="color: #9ece6a; font-weight: bold;">False</span> (took 0.0004s)\n`;
           }
         }
       } 
