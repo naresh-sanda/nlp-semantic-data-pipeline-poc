@@ -116,6 +116,7 @@ ai_dw_nlp_poc/
 ├── rag_deep_dive.html       # Python vs Java architectural RAG deep dive
 ├── vector_distance_guide.html # Mathematical guide for vector metrics
 ├── advanced_rag_concepts.html # Interactive guide detailing advanced RAG upgrades
+├── code_flow_guide.html     # Interactive reference manual mapping code flows to Java
 │
 ├── requirements.txt         # Project package dependencies
 ├── run_demo.py              # End-to-end flow runner
@@ -184,3 +185,4 @@ The project includes a suite of rich-designed, interactive local HTML dashboards
 * **🔬 [rag_deep_dive.html](file:///d:/anvizent-datapipeline-nlp-poc/ai_dw_nlp_poc/rag_deep_dive.html)**: Comprehensive transition analysis mapping Python structures directly to Java classes.
 * **📐 [vector_distance_guide.html](file:///d:/anvizent-datapipeline-nlp-poc/ai_dw_nlp_poc/vector_distance_guide.html)**: Interactive guide detailing vector math, library analogies, and similarity scoring.
 * **🔬 [advanced_rag_concepts.html](file:///d:/anvizent-datapipeline-nlp-poc/ai_dw_nlp_poc/advanced_rag_concepts.html)**: Interactive guide detailing advanced RAG upgrades (Reranking, Query Expansion, Multi-Hop, Agentic, and RAGAS metrics).
+* **📖 [code_flow_guide.html](file:///d:/anvizent-datapipeline-nlp-poc/ai_dw_nlp_poc/code_flow_guide.html)**: Step-by-step logic tracing of Phase 1 Ingestion and Phase 2 Retrieval with side-by-side Java translations.
