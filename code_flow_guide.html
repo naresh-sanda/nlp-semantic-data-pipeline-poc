@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Code Flow Reference - NLP Semantic Data Pipeline POC</title>
+  <meta name="description" content="A comprehensive, interactive code execution flow documentation for Phase 1 and Phase 2 of the NLP Semantic Data Pipeline POC, featuring Java mappings for enterprise developers.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #090a0f;
+      --bg-card: rgba(20, 22, 34, 0.7);
+      --bg-nav: #10121d;
+      --primary: #8257e5;
+      --primary-glow: rgba(130, 87, 229, 0.4);
+      --secondary: #00f2fe;
+      --secondary-glow: rgba(0, 242, 254, 0.3);
+      --accent-purple: #c084fc;
+      --accent-green: #4ade80;
+      --accent-orange: #f89820;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --card-border-glow: rgba(130, 87, 229, 0.15);
+      --code-bg: #0f1015;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-dark);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary);
+    }
+
+    header {
+      background-color: var(--bg-nav);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1.25rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      font-weight: 800;
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      background: linear-gradient(to right, #ffffff, #c7d2fe);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .phase-toggle {
+      display: flex;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 0.25rem;
+      border-radius: 30px;
+      border: 1px solid var(--border-color);
+    }
+
+    .toggle-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.5rem 1.25rem;
+      border-radius: 20px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .toggle-btn.active {
+      background: linear-gradient(135deg, var(--primary), rgba(130, 87, 229, 0.6));
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(130, 87, 229, 0.3);
+    }
+
+    .main-container {
+      display: flex;
+      flex: 1;
+      position: relative;
+    }
+
+    /* Sidebar Navigation */
+    aside {
+      width: 280px;
+      background-color: #0b0d14;
+      border-right: 1px solid var(--border-color);
+      padding: 2rem 1.5rem;
+      position: sticky;
+      top: 73px;
+      height: calc(100vh - 73px);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .nav-section-title {
+      font-size: 0.75rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.9rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      border-left: 2px solid transparent;
+    }
+
+    .sidebar-link:hover {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-main);
+    }
+
+    .sidebar-link.active {
+      background: rgba(130, 87, 229, 0.08);
+      color: var(--secondary);
+      border-left-color: var(--secondary);
+      font-weight: 500;
+    }
+
+    .sidebar-step-num {
+      font-size: 0.75rem;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 0.1rem 0.35rem;
+      border-radius: 4px;
+      color: var(--text-muted);
+    }
+
+    .sidebar-link.active .sidebar-step-num {
+      background: var(--secondary);
+      color: var(--bg-dark);
+      font-weight: 700;
+    }
+
+    /* Content Area */
+    main {
+      flex: 1;
+      padding: 3rem 4rem;
+      max-width: 1200px;
+      overflow-y: auto;
+    }
+
+    .page-title-block {
+      margin-bottom: 3rem;
+    }
+
+    .page-title-block h2 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #ffffff, #a5b4fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .page-title-block p {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      max-width: 800px;
+      line-height: 1.6;
+    }
+
+    /* Flow Overview Diagram */
+    .flow-diagram-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 3rem;
+      position: relative;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .diagram-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--accent-purple);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .diagram-flex {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      overflow-x: auto;
+      padding: 1rem 0;
+    }
+
+    .diagram-node {
+      background: rgba(16, 18, 29, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 1rem;
+      min-width: 170px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      position: relative;
+    }
+
+    .diagram-node:hover {
+      border-color: var(--secondary);
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0, 242, 254, 0.15);
+    }
+
+    .diagram-node.active {
+      border-color: var(--primary);
+      background: rgba(130, 87, 229, 0.1);
+      box-shadow: 0 8px 24px var(--primary-glow);
+    }
+
+    .node-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+
+    .node-subtitle {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: 'Fira Code', monospace;
+    }
+
+    .diagram-arrow {
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      font-weight: 300;
+      user-select: none;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.3; transform: translateX(0); }
+      50% { opacity: 1; transform: translateX(3px); }
+      100% { opacity: 0.3; transform: translateX(0); }
+    }
+
+    /* Steps Section */
+    .step-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 2.5rem;
+      margin-bottom: 3.5rem;
+      position: relative;
+      transition: border-color 0.3s ease;
+      scroll-margin-top: 100px;
+    }
+
+    .step-card:hover {
+      border-color: var(--card-border-glow);
+    }
+
+    .step-badge {
+      position: absolute;
+      top: -15px;
+      left: 2rem;
+      background: linear-gradient(135deg, var(--primary), var(--accent-purple));
+      color: #fff;
+      font-size: 0.8rem;
+      font-weight: 800;
+      padding: 0.4rem 1rem;
+      border-radius: 30px;
+      box-shadow: 0 4px 10px rgba(130, 87, 229, 0.3);
+      letter-spacing: 0.5px;
+    }
+
+    .step-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 1rem;
+    }
+
+    .step-title h3 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+
+    .step-file {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9rem;
+      color: var(--secondary);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: color 0.2s ease;
+    }
+
+    .step-file:hover {
+      color: #fff;
+      text-decoration: underline;
+    }
+
+    .step-meta {
+      display: flex;
+      gap: 2rem;
+      margin-bottom: 1.5rem;
+      background: rgba(255, 255, 255, 0.02);
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+
+    .meta-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+
+    .meta-value {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .meta-value.input-color {
+      color: var(--accent-green);
+    }
+
+    .meta-value.output-color {
+      color: var(--accent-purple);
+    }
+
+    .step-description {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+      margin-bottom: 2rem;
+    }
+
+    /* Tabs inside step cards */
+    .detail-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 1.5rem;
+      gap: 1.5rem;
+    }
+
+    .detail-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.5rem 0;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+    }
+
+    .detail-tab-btn:hover {
+      color: var(--text-main);
+    }
+
+    .detail-tab-btn.active {
+      color: var(--secondary);
+      border-bottom-color: var(--secondary);
+    }
+
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Code blocks container */
+    .code-wrapper {
+      position: relative;
+      background: var(--code-bg);
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      margin-top: 1rem;
+      overflow: hidden;
+    }
+
+    .code-header {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 0.5rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .code-copy-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-family: 'Outfit', sans-serif;
+      transition: all 0.2s ease;
+    }
+
+    .code-copy-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+    }
+
+    pre {
+      margin: 0;
+      padding: 1.25rem;
+      overflow-x: auto;
+    }
+
+    code {
+      font-family: 'Fira Code', monospace;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    /* Highlighting classes */
+    .c-kw { color: #ff79c6; } /* Keyword */
+    .c-fn { color: #50fa7b; } /* Function/Method */
+    .c-cl { color: #8be9fd; } /* Class */
+    .c-str { color: #f1fa8c; } /* String */
+    .c-com { color: #6272a4; font-style: italic; } /* Comment */
+    .c-num { color: #bd93f9; } /* Number */
+
+    /* Java Mapping Card style */
+    .java-mapping-card {
+      background: rgba(248, 152, 32, 0.04);
+      border: 1px dashed rgba(248, 152, 32, 0.25);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-top: 1rem;
+    }
+
+    .java-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .java-logo {
+      font-size: 1.2rem;
+    }
+
+    .java-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--accent-orange);
+    }
+
+    .java-text {
+      font-size: 0.9rem;
+      line-height: 1.5;
+      color: #cbd5e1;
+    }
+
+    .java-mapping-list {
+      margin-top: 0.75rem;
+      padding-left: 1.25rem;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    /* Phase sections display logic */
+    .phase-content {
+      display: none;
+    }
+
+    .phase-content.active {
+      display: block;
+    }
+
+    footer {
+      background-color: var(--bg-nav);
+      border-top: 1px solid var(--border-color);
+      padding: 1.5rem;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Header -->
+  <header>
+    <div class="logo-container">
+      <span class="logo-badge">POC CODEFLOW</span>
+      <h1>NLP Semantic Data Pipeline Reference</h1>
+    </div>
+    <div class="phase-toggle">
+      <button class="toggle-btn active" id="btn-phase1" onclick="switchPhase(1)">Phase 1: Ingestion</button>
+      <button class="toggle-btn" id="btn-phase2" onclick="switchPhase(2)">Phase 2: Retrieval & Scoring</button>
+    </div>
+  </header>
+
+  <div class="main-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside>
+      <div id="sidebar-phase1-nav">
+        <h3 class="nav-section-title">Phase 1 Pipeline Steps</h3>
+        <ul class="sidebar-menu">
+          <li>
+            <a href="#p1-step1" class="sidebar-link active" id="link-p1-step1">
+              <span class="sidebar-step-num">1</span>
+              <span>Metadata DB Loading</span>
+            </a>
+          </li>
+          <li>
+            <a href="#p1-step2" class="sidebar-link" id="link-p1-step2">
+              <span class="sidebar-step-num">2</span>
+              <span>Document Chunking</span>
+            </a>
+          </li>
+          <li>
+            <a href="#p1-step3" class="sidebar-link" id="link-p1-step3">
+              <span class="sidebar-step-num">3</span>
+              <span>Chroma Vector Store</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div id="sidebar-phase2-nav" style="display: none;">
+        <h3 class="nav-section-title">Phase 2 Pipeline Steps</h3>
+        <ul class="sidebar-menu">
+          <li>
+            <a href="#p2-step1" class="sidebar-link" id="link-p2-step1">
+              <span class="sidebar-step-num">1</span>
+              <span>NLP Intent Analysis</span>
+            </a>
+          </li>
+          <li>
+            <a href="#p2-step2" class="sidebar-link" id="link-p2-step2">
+              <span class="sidebar-step-num">2</span>
+              <span>SQLite Schema Lookup</span>
+            </a>
+          </li>
+          <li>
+            <a href="#p2-step3" class="sidebar-link" id="link-p2-step3">
+              <span class="sidebar-step-num">3</span>
+              <span>Semantic RAG Search</span>
+            </a>
+          </li>
+          <li>
+            <a href="#p2-step4" class="sidebar-link" id="link-p2-step4">
+              <span class="sidebar-step-num">4</span>
+              <span>LLM Prompt Builder</span>
+            </a>
+          </li>
+          <li>
+            <a href="#p2-step5" class="sidebar-link" id="link-p2-step5">
+              <span class="sidebar-step-num">5</span>
+              <span>SQL Generator</span>
+            </a>
+          </li>
+          <li>
+            <a href="#p2-step6" class="sidebar-link" id="link-p2-step6">
+              <span class="sidebar-step-num">6</span>
+              <span>Confidence & Scoring</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main>
+
+      <!-- PHASE 1 CONTENT -->
+      <section class="phase-content active" id="phase1-content">
+        <div class="page-title-block">
+          <h2>Phase 1: Ingestion & Knowledge Setup</h2>
+          <p>Phase 1 prepares the semantic context. It processes relational metadata schemas and rules, compiling them into a hybrid search repository (SQLite + ChromaDB Vector Index) for runtime context lookup.</p>
+        </div>
+
+        <!-- Ingestion Visual Flow -->
+        <div class="flow-diagram-container">
+          <div class="diagram-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Phase 1 Data Flow Overview
+          </div>
+          <div class="diagram-flex">
+            <div class="diagram-node active" onclick="scrollToElement('p1-step1')">
+              <div class="node-title">1. DB Setup</div>
+              <div class="node-subtitle">metadata_loader.py</div>
+            </div>
+            <div class="diagram-arrow">➔</div>
+            <div class="diagram-node" onclick="scrollToElement('p1-step2')">
+              <div class="node-title">2. Text Chunking</div>
+              <div class="node-subtitle">chunker.py</div>
+            </div>
+            <div class="diagram-arrow">➔</div>
+            <div class="diagram-node" onclick="scrollToElement('p1-step3')">
+              <div class="node-title">3. Vector Storage</div>
+              <div class="node-subtitle">embedder.py</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- P1 Step 1: Metadata DB Loading -->
+        <div class="step-card" id="p1-step1">
+          <span class="step-badge">STEP 1</span>
+          <div class="step-header">
+            <div class="step-title">
+              <h3>Metadata Database Loading</h3>
+              <a href="file:///d:/anvizent-datapipeline-nlp-poc/ai_dw_nlp_poc/src/phase1_ingestion/loaders/metadata_loader.py" class="step-file">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
+                src/phase1_ingestion/loaders/metadata_loader.py
+              </a>
+            </div>
+          </div>
+
+          <div class="step-meta">
+            <div class="meta-item">
+              <span class="meta-label">Primary Function</span>
+              <span class="meta-value"><code>setup_database(db_path, metadata_dir)</code></span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Input Assets</span>
+              <span class="meta-value input-color">CSV files (tables.csv, columns.csv, joins.csv)</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Output Asset</span>
+              <span class="meta-value output-color">SQLite DB file (metadata.db)</span>
+            </div>
+          </div>
+
+          <p class="step-description">
+            Parses schema configuration files (CSV) defining the structure of the data warehouse. This metadata registers database tables, columns, data types, and primary-to-foreign key relationships. The loader parses the CSV structures and initializes standard SQLite relational schemas to power high-speed schema mapping at runtime.
+          </p>
+
+          <div class="detail-tabs">
+            <button class="detail-tab-btn active" onclick="switchDetailTab(this, 'p1s1-py')">Python Source</button>
+            <button class="detail-tab-btn" onclick="switchDetailTab(this, 'p1s1-java')">Java Mapping (JDBC)</button>
+          </div>
+
+          <!-- Python Tab -->
+          <div class="tab-content active" id="p1s1-py">
+            <div class="code-wrapper">
+              <div class="code-header">
+                <span>metadata_loader.py (Core Logic Snippet)</span>
+                <button class="code-copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code><span class="c-kw">import</span> sqlite3, csv
+<span class="c-kw">def</span> <span class="c-fn">setup_database</span>(db_path, metadata_dir):
+    conn = sqlite3.<span class="c-fn">connect</span>(db_path)
+    cursor = conn.<span class="c-fn">cursor</span>()
+    <span class="c-com"># Create tables representing relational schema</span>
+    cursor.<span class="c-fn">execute</span>(<span class="c-str">"""CREATE TABLE IF NOT EXISTS tables (
+        table_name TEXT PRIMARY KEY, description TEXT, type TEXT
+    )"""</span>)
+    <span class="c-com"># ... (create column & joins tables) ...</span>
+    
+    <span class="c-com"># Populate from metadata folder CSVs</span>
+    <span class="c-kw">with</span> <span class="c-fn">open</span>(f<span class="c-str">"{metadata_dir}/tables.csv"</span>, <span class="c-str">'r'</span>) <span class="c-kw">as</span> f:
+        reader = csv.<span class="c-fn">reader</span>(f)
+        <span class="c-fn">next</span>(reader) <span class="c-com"># skip header</span>
+        cursor.<span class="c-fn">executemany</span>(<span class="c-str">"INSERT OR REPLACE INTO tables VALUES (?,?,?)"</span>, reader)
+    conn.<span class="c-fn">commit</span>()
+    conn.<span class="c-fn">close</span>()</code></pre>
+            </div>
+          </div>
+
+          <!-- Java Tab -->
+          <div class="tab-content" id="p1s1-java">
+            <div class="java-mapping-card">
+              <div class="java-header">
+                <span class="java-logo">☕</span>
+                <span class="java-title">Java Implementation Approach</span>
+              </div>
+              <p class="java-text">
+                In Java, this ingestion is standard schema initialization. Typically managed via:
+              </p>
+              <ul class="java-mapping-list">
+                <li><strong>Spring Boot Schema Loader:</strong> Run SQL statements utilizing <code>schema.sql</code> and <code>data.sql</code> dynamically at runtime.</li>
+                <li><strong>CSV Parser:</strong> Use <strong>Apache Commons CSV</strong> or <strong>OpenCSV</strong> to parse structural configuration files.</li>
+                <li><strong>Data Insertion:</strong> Run batch updates via <code>JdbcTemplate.batchUpdate(...)</code> for transaction performance.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- P1 Step 2: Document Chunking -->
+        <div class="step-card" id="p1-step2">
+          <span class="step-badge">STEP 2</span>
+          <div class="step-header">
+            <div class="step-title">
+              <h3>Document Chunking</h3>
+              <a href="file:///d:/anvizent-datapipeline-nlp-poc/ai_dw_nlp_poc/src/phase1_ingestion/chunking/chunker.py" class="step-file">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
+                src/phase1_ingestion/chunking/chunker.py
+              </a>
+            </div>
+          </div>
+
+          <div class="step-meta">
+            <div class="meta-item">
+              <span class="meta-label">Primary Class</span>
+              <span class="meta-value"><code>Chunker</code></span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Input Assets</span>
+              <span class="meta-value input-color">TXT Rules (semantic_business_rules.txt, glossary.txt)</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Output Asset</span>
+              <span class="meta-value output-color">List of Text Strings (Chunks)</span>
+            </div>
+          </div>
+
+          <p class="step-description">
+            Splits semantic documents into smaller, coherent text chunks to ensure efficient vector index lookups. The <code>Chunker</code> supports different strategies, including <code>fixed</code> character splitting, <code>recursive</code> paragraph-splitters, and a custom <code>metadata-aware</code> splitter designed specifically to group custom business rules (splitting text sections beginning with "Term:" or "Rule:").
+          </p>
+
+          <div class="detail-tabs">
+            <button class="detail-tab-btn active" onclick="switchDetailTab(this, 'p1s2-py')">Python Source</button>
+            <button class="detail-tab-btn" onclick="switchDetailTab(this, 'p1s2-java')">Java Mapping (LangChain4j)</button>
+          </div>
+
+          <!-- Python Tab -->
+          <div class="tab-content active" id="p1s2-py">
+            <div class="code-wrapper">
+              <div class="code-header">
+                <span>chunker.py (Metadata-Aware Logic)</span>
+                <button class="code-copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code><span class="c-kw">class</span> <span class="c-cl">Chunker</span>:
+    <span class="c-kw">def</span> <span class="c-fn">_metadata_aware_chunking</span>(self, text, metadata=<span class="c-kw">None</span>):
+        lines = text.<span class="c-fn">split</span>(<span class="c-str">"\n"</span>)
+        chunks, current_chunk = [], []
+        <span class="c-kw">for</span> line <span class="c-kw">in</span> lines:
+            <span class="c-com"># Split logically when a rule or glossary term is declared</span>
+            <span class="c-kw">if</span> line.<span class="c-fn">startswith</span>(<span class="c-str">"Term:"</span>) <span class="c-kw">or</span> line.<span class="c-fn">startswith</span>(<span class="c-str">"Rule:"</span>):
+                <span class="c-kw">if</span> current_chunk:
+                    chunks.<span class="c-fn">append</span>(<span class="c-str">"\n"</span>.<span class="c-fn">join</span>(current_chunk))
+                current_chunk = [line]
+            <span class="c-kw">else:</span>
+                current_chunk.<span class="c-fn">append</span>(line)
+        <span class="c-kw">if</span> current_chunk:
+            chunks.<span class="c-fn">append</span>(<span class="c-str">"\n"</span>.<span class="c-fn">join</span>(current_chunk))
+        <span class="c-kw">return</span> [c <span class="c-kw">for</span> c <span class="c-kw">in</span> chunks <span class="c-kw">if</span> c.<span class="c-fn">strip</span>()]</code></pre>
+            </div>
+          </div>
+
+          <!-- Java Tab -->
+          <div class="tab-content" id="p1s2-java">
+            <div class="java-mapping-card">
+              <div class="java-header">
+                <span class="java-logo">☕</span>
+                <span class="java-title">LangChain4j Equivalents</span>
+              </div>
+              <p class="java-text">
+                LangChain4j provides robust built-in objects to handle document parsing and splitting:
+              </p>
+              <ul class="java-mapping-list">
+                <li><strong>Document Splitter:</strong> Map this operation directly to LangChain4j's <code>DocumentSplitters</code>. E.g., <code>DocumentSplitters.recursive(300, 30)</code> split by characters/paragraphs.</li>
+                <li><strong>Custom Parser:</strong> For metadata-aware boundary matching, implement the <code>DocumentSplitter</code> interface and code a custom loop matching <code>line.startsWith("Term:")</code>, returning a list of <code>TextSegment</code> wrappers.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- P1 Step 3: Chroma Vector Store Ingestion -->
+        <div class="step-card" id="p1-step3">
+          <span class="step-badge">STEP 3</span>
+          <div class="step-header">
+            <div class="step-title">
+              <h3>Vector Store Indexing</h3>
+              <a href="file:///d:/anvizent-datapipeline-nlp-poc/ai_dw_nlp_poc/src/phase1_ingestion/embeddings/embedder.py" class="step-file">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
+                src/phase1_ingestion/embeddings/embedder.py
+              </a>
+            </div>
+          </div>
+
+          <div class="step-meta">
+            <div class="meta-item">
+              <span class="meta-label">Primary Class</span>
+              <span class="meta-value"><code>Embedder</code></span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">ML Model</span>
+              <span class="meta-value"><code>SentenceTransformer('all-MiniLM-L6-v2')</code></span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Target DB</span>
+              <span class="meta-value output-color">ChromaDB Persistent Client</span>
+            </div>
+          </div>
+
+          <p class="step-description">
+            Initializes the local Machine Learning embedding model and registers chunks in the vector database. It converts character arrays (text chunks) into 384-dimensional floating point vectors representing semantic meaning. The vector coordinates are upserted into an offline ChromaDB index (`vector_store/`), making them fully searchable by distance metrics (e.g. Cosine Similarity) at runtime.
+          </p>
+
+          <div class="detail-tabs">
+            <button class="detail-tab-btn active" onclick="switchDetailTab(this, 'p1s3-py')">Python Source</button>
+            <button class="detail-tab-btn" onclick="switchDetailTab(this, 'p1s3-java')">Java Mapping (ONNX + LangChain4j)</button>
+          </div>
+
+          <!-- Python Tab -->
+          <div class="tab-content active" id="p1s3-py">
+            <div class="code-wrapper">
+              <div class="code-header">
+                <span>embedder.py (Embedding & Upsert)</span>
+                <button class="code-copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code><span class="c-kw">import</span> chromadb
+<span class="c-kw">from</span> sentence_transformers <span class="c-kw">import</span> SentenceTransformer
+
+<span class="c-kw">class</span> <span class="c-cl">Embedder</span>:
+    <span class="c-kw">def</span> <span class="c-fn">__init__</span>(self, db_dir):
+        self.client = chromadb.<span class="c-cl">PersistentClient</span>(path=db_dir)
+        self.collection = self.client.<span class="c-fn">get_or_create_collection</span>(<span class="c-str">"semantic_knowledge"</span>)
+        self.model = <span class="c-cl">SentenceTransformer</span>(<span class="c-str">'all-MiniLM-L6-v2'</span>)
+
+    <span class="c-kw">def</span> <span class="c-fn">add_chunks</span>(self, chunks):
+        <span class="c-com"># Generate embedding vector lists offline</span>
+        embeddings = self.model.<span class="c-fn">encode</span>(chunks).<span class="c-fn">tolist</span>()
+        ids = [f<span class="c-str">"chunk_{i}"</span> <span class="c-kw">for</span> i <span class="c-kw">in</span> <span class="c-fn">range</span>(<span class="c-fn">len</span>(chunks))]
+        <span class="c-com"># Insert vector coordinate records into ChromaDB</span>
+        self.collection.<span class="c-fn">upsert</span>(
+            embeddings=embeddings, documents=chunks, ids=ids
+        )</code></pre>
+            </div>
+          </div>
+
+          <!-- Java Tab -->
+          <div class="tab-content" id="p1s3-java">
+            <div class="java-mapping-card">
+              <div class="java-header">
+                <span class="java-logo">☕</span>
+                <span class="java-title">Java Library Mapping</span>
+              </div>
+              <p class="java-text">
+                To run embeddings and vector storage natively on JVM:
+              </p>
+              <ul class="java-mapping-list">
+                <li><strong>Local Embedding Model:</strong> Import <code>dev.langchain4j.model.embedding.AllMiniLmL6V2EmbeddingModel</code>. This loads the exact same model running inside an in-memory Java **ONNX Runtime** instance.</li>
+                <li><strong>Vector Database Storage:</strong> Configure an <code>EmbeddingStore</code> client wrapper pointing to your database, such as <code>ChromaEmbeddingStore</code>, <code>MilvusEmbeddingStore</code>, or <code>PgVectorEmbeddingStore</code>.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PHASE 2 CONTENT -->
+      <section class="phase-content" id="phase2-content">
+        <div class="page-title-block">
+          <h2>Phase 2: Runtime Semantic Retrieval & SQL Generation</h2>
+          <p>Phase 2 handles incoming user queries. It analyzes query intent, extracts database structural synonyms, retrieves matching constraints from ChromaDB, builds context, generates SQL, and validates the result via confidence analysis.</p>
+        </div>
+
+        <!-- Retrieval Visual Flow -->
+        <div class="flow-diagram-container">
+          <div class="diagram-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            Phase 2 Runtime Pipeline Diagram
+          </div>
+          <div class="diagram-flex">
+            <div class="diagram-node active" onclick="scrollToElement('p2-step1')">
+              <div class="node-title">1. Query Analysis</div>
+              <div class="node-subtitle">nlp_analyzer.py</div>
+            </div>
+            <div class="diagram-arrow">➔</div>
+            <div class="diagram-node" onclick="scrollToElement('p2-step2')">
+              <div class="node-title">2. Schema Lookup</div>
+              <div class="node-subtitle">lookup_engine.py</div>
+            </div>
+            <div class="diagram-arrow">➔</div>
+            <div class="diagram-node" onclick="scrollToElement('p2-step3')">
+              <div class="node-title">3. Semantic Search</div>
+              <div class="node-subtitle">rag_retriever.py</div>
+            </div>
+          </div>
+          <div class="diagram-flex" style="margin-top: 1rem;">
+            <div class="diagram-node" onclick="scrollToElement('p2-step4')">
+              <div class="node-title">4. Prompt Build</div>
+              <div class="node-subtitle">builder.py</div>
+            </div>
+            <div class="diagram-arrow">➔</div>
+            <div class="diagram-node" onclick="scrollToElement('p2-step5')">
+              <div class="node-title">5. SQL Generation</div>
+              <div class="node-subtitle">generator.py</div>
+            </div>
+            <div class="diagram-arrow">➔</div>
+            <div class="diagram-node" onclick="scrollToElement('p2-step6')">
+              <div class="node-title">6. Score & Validate</div>
+              <div class="node-subtitle">scorer.py</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- P2 Step 1: NLP Intent Analysis -->
+        <div class="step-card" id="p2-step1">
+          <span class="step-badge">STEP 1</span>
+          <div class="step-header">
+            <div class="step-title">
+              <h3>NLP Intent Analysis</h3>
+              <a href="file:///d:/anvizent-datapipeline-nlp-poc/ai_dw_nlp_poc/src/phase2_retrieval/analyzer/nlp_analyzer.py" class="step-file">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
+                src/phase2_retrieval/analyzer/nlp_analyzer.py
+              </a>
+            </div>
+          </div>
+
+          <div class="step-meta">
+            <div class="meta-item">
+              <span class="meta-label">Primary Method</span>
+              <span class="meta-value"><code>NLPAnalyzer.analyze(query)</code></span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Input</span>
+              <span class="meta-value input-color">User Natural Language Query (string)</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Output</span>
+              <span class="meta-value output-color">JSON Object (extracted entities, intent, keywords)</span>
+            </div>
+          </div>
+
+          <p class="step-description">
+            Evaluates the incoming query string using regex-based pattern matching (intent parser) to identify query targets (e.g. "revenue", "margin"), filters, aggregation fields (e.g. "monthly"), and candidate table/column references. This allows the system to build structured search tokens for both the database metadata and the vector collection.
+          </p>
+
+          <div class="detail-tabs">
+            <button class="detail-tab-btn active" onclick="switchDetailTab(this, 'p2s1-py')">Python Source</button>
+            <button class="detail-tab-btn" onclick="switchDetailTab(this, 'p2s1-java')">Java Mapping (Regex / OpenNLP)</button>
+          </div>
+
+          <!-- Python Tab -->
+          <div class="tab-content active" id="p2s1-py">
+            <div class="code-wrapper">
+              <div class="code-header">
+                <span>nlp_analyzer.py (Intent Parsing)</span>
+                <button class="code-copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code><span class="c-kw">import</span> re
+<span class="c-kw">class</span> <span class="c-cl">NLPAnalyzer</span>:
+    <span class="c-kw">def</span> <span class="c-fn">analyze</span>(self, query):
+        q = query.<span class="c-fn">lower</span>()
+        extracted = {<span class="c-str">"intent"</span>: <span class="c-str">"select"</span>, <span class="c-str">"entities"</span>: [], <span class="c-str">"aggregations"</span>: []}
+        
+        <span class="c-com"># Detect aggregation terms</span>
+        <span class="c-kw">if</span> <span class="c-str">"monthly"</span> <span class="c-kw">in</span> q <span class="c-kw">or</span> <span class="c-str">"month"</span> <span class="c-kw">in</span> q:
+            extracted[<span class="c-str">"aggregations"</span>].<span class="c-fn">append</span>(<span class="c-str">"monthly"</span>)
+            
+        <span class="c-com"># Extract keyword candidates using boundary patterns</span>
+        words = re.<span class="c-fn">findall</span>(<span class="c-str">r'\b[a-zA-Z]{3,}\b'</span>, q)
+        extracted[<span class="c-str">"entities"</span>] = [w <span class="c-kw">for</span> w <span class="c-kw">in</span> words <span class="c-kw">if</span> w <span class="c-kw">not in</span> [<span class="c-str">"show"</span>, <span class="c-str">"find"</span>, <span class="c-str">"list"</span>]]
+        <span class="c-kw">return</span> extracted</code></pre>
+            </div>
+          </div>
+
+          <!-- Java Tab -->
+          <div class="tab-content" id="p2s1-java">
+            <div class="java-mapping-card">
+              <div class="java-header">
+                <span class="java-logo">☕</span>
+                <span class="java-title">Java Parsing Options</span>
+              </div>
+              <p class="java-text">
+                To parse query intent and identify entity keywords on the JVM:
+              </p>
+              <ul class="java-mapping-list">
+                <li><strong>Java Regular Expressions:</strong> Direct match using standard packages (<code>java.util.regex.Pattern</code> and <code>Matcher</code>).</li>
+                <li><strong>NLP Engines:</strong> For production-level entity tagging without complex regex, use **Apache OpenNLP** (specifically the <code>TokenizerME</code> and <code>NameFinderME</code> classes) to identify keywords and structural concepts.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- P2 Step 2: SQLite Schema Lookup -->
+        <div class="step-card" id="p2-step2">
+          <span class="step-badge">STEP 2</span>
+          <div class="step-header">
+            <div class="step-title">
+              <h3>SQLite Schema Lookup</h3>
+              <a href="file:///d:/anvizent-datapipeline-nlp-poc/ai_dw_nlp_poc/src/phase2_retrieval/metadata_lookup/lookup_engine.py" class="step-file">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
+                src/phase2_retrieval/metadata_lookup/lookup_engine.py
+              </a>
+            </div>
+          </div>
+
+          <div class="step-meta">
+            <div class="meta-item">
+              <span class="meta-label">Primary Method</span>
+              <span class="meta-value"><code>LookupEngine.lookup(extracted_data)</code></span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Input</span>
+              <span class="meta-value input-color">Extracted Entity Keywords (dict)</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Output</span>
+              <span class="meta-value output-color">Database schemas, matching tables, primary join keys</span>
+            </div>
+          </div>
+
+          <p class="step-description">
+            Queries the SQLite metadata database (`db/metadata.db`) using the parsed entities. It searches the tables, columns, and joins indexes to identify matching table schemas and the primary/foreign key connections required to dynamically construct join statements (e.g. `customer_id` join paths).
+          </p>
+
+          <div class="detail-tabs">
+            <button class="detail-tab-btn active" onclick="switchDetailTab(this, 'p2s2-py')">Python Source</button>
+            <button class="detail-tab-btn" onclick="switchDetailTab(this, 'p2s2-java')">Java Mapping (Spring JDBC / JPA)</button>
+          </div>
+
+          <!-- Python Tab -->
+          <div class="tab-content active" id="p2s2-py">
+            <div class="code-wrapper">
+              <div class="code-header">
+                <span>lookup_engine.py (SQLite SQL Queries)</span>
+                <button class="code-copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code><span class="c-kw">import</span> sqlite3
+<span class="c-kw">class</span> <span class="c-cl">LookupEngine</span>:
+    <span class="c-kw">def</span> <span class="c-fn">__init__</span>(self, db_path):
+        self.db_path = db_path
+
+    <span class="c-kw">def</span> <span class="c-fn">lookup</span>(self, extracted_data):
+        conn = sqlite3.<span class="c-fn">connect</span>(self.db_path)
+        cursor = conn.<span class="c-fn">cursor</span>()
+        entities = extracted_data.get(<span class="c-str">"entities"</span>, [])
+        matches = []
+        <span class="c-kw">for</span> ent <span class="c-kw">in</span> entities:
+            <span class="c-com"># Query SQLite database for tables or columns containing this concept</span>
+            cursor.<span class="c-fn">execute</span>(<span class="c-str">"""SELECT table_name, description FROM tables 
+                             WHERE table_name LIKE ? OR description LIKE ?"""</span>, 
+                           (f<span class="c-str">"%{ent}%"</span>, f<span class="c-str">"%{ent}%"</span>))
+            matches.<span class="c-fn">extend</span>(cursor.<span class="c-fn">fetchall</span>())
+        conn.<span class="c-fn">close</span>()
+        <span class="c-kw">return</span> matches</code></pre>
+            </div>
+          </div>
+
+          <!-- Java Tab -->
+          <div class="tab-content" id="p2s2-java">
+            <div class="java-mapping-card">
+              <div class="java-header">
+                <span class="java-logo">☕</span>
+                <span class="java-title">Java Database Interaction</span>
+              </div>
+              <p class="java-text">
+                Querying relational metadata in Java is standard database access:
+              </p>
+              <ul class="java-mapping-list">
+                <li><strong>Spring JDBC / MyBatis:</strong> Execute matching queries using <code>NamedParameterJdbcTemplate</code> or JPA/Hibernate queries mapping to a relational entity class (e.g. <code>MetadataTable</code>).</li>
+                <li><strong>In-Memory Database:</strong> If metadata updates are rare, load them into a local cache or a nested **H2 Database** instance to achieve sub-millisecond query responses.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- P2 Step 3: Semantic RAG Search -->
+        <div class="step-card" id="p2-step3">
+          <span class="step-badge">STEP 3</span>
+          <div class="step-header">
+            <div class="step-title">
+              <h3>Semantic RAG Search</h3>
+              <a href="file:///d:/anvizent-datapipeline-nlp-poc/ai_dw_nlp_poc/src/phase2_retrieval/retrieval/rag_retriever.py" class="step-file">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
+                src/phase2_retrieval/retrieval/rag_retriever.py
+              </a>
+            </div>
+          </div>
+
+          <div class="step-meta">
+            <div class="meta-item">
+              <span class="meta-label">Primary Method</span>
+              <span class="meta-value"><code>RAGRetriever.retrieve(query)</code></span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Store Client</span>
+              <span class="meta-value">ChromaDB Collection Query</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Robustness Fallback</span>
+              <span class="meta-value output-color">Word-Overlap Search (deterministic)</span>
+            </div>
+          </div>
+
+          <p class="step-description">
+            Queries ChromaDB using cosine-distance vector matches based on the user's raw query string. If the Vector DB setup or query fails (e.g. library installation errors or native runtime crashes), the script automatically redirects processing to a local **keyword-overlap fallback retriever** (Jaccard similarity match on glossary/rules files) to prevent execution failure.
+          </p>
+
+          <div class="detail-tabs">
+            <button class="detail-tab-btn active" onclick="switchDetailTab(this, 'p2s3-py')">Python Source</button>
+            <button class="detail-tab-btn" onclick="switchDetailTab(this, 'p2s3-java')">Java Mapping (LangChain4j + Fallback)</button>
+          </div>
+
+          <!-- Python Tab -->
+          <div class="tab-content active" id="p2s3-py">
+            <div class="code-wrapper">
+              <div class="code-header">
+                <span>rag_retriever.py (Vector Lookup & Fallback)</span>
+                <button class="code-copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code><span class="c-kw">class</span> <span class="c-cl">RAGRetriever</span>:
+    <span class="c-kw">def</span> <span class="c-fn">retrieve</span>(self, query, top_k=<span class="c-num">3</span>, threshold=<span class="c-num">0.3</span>):
+        <span class="c-kw">if</span> self.use_fallback:
+            <span class="c-kw">return</span> self.<span class="c-fn">_fallback_retrieve</span>(query, top_k)
+        <span class="c-kw">try:</span>
+            query_emb = self.model.<span class="c-fn">encode</span>([query]).<span class="c-fn">tolist</span>()
+            results = self.collection.<span class="c-fn">query</span>(query_embeddings=query_emb, n_results=top_k)
+            <span class="c-com"># ... extract and format documents ...</span>
+            <span class="c-kw">return</span> retrieved_chunks
+        <span class="c-kw">except</span> Exception <span class="c-kw">as</span> e:
+            <span class="c-kw">return</span> self.<span class="c-fn">_fallback_retrieve</span>(query, top_k)</code></pre>
+            </div>
+          </div>
+
+          <!-- Java Tab -->
+          <div class="tab-content" id="p2s3-java">
+            <div class="java-mapping-card">
+              <div class="java-header">
+                <span class="java-logo">☕</span>
+                <span class="java-title">Java RAG and Fallbacks</span>
+              </div>
+              <p class="java-text">
+                Managing search logic and error boundaries in LangChain4j:
+              </p>
+              <ul class="java-mapping-list">
+                <li><strong>Vector Retriever:</strong> Wrap your <code>EmbeddingStore</code> in a LangChain4j <code>EmbeddingStoreRetriever</code> instance.</li>
+                <li><strong>Exception Boundary:</strong> Implement the Java **Try-Catch** block around the remote store query. In the `catch` block, execute a fallback matching method that reads static business rule files from the classpath resources (using <code>ResourcePatternResolver</code>).</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- P2 Step 4: Prompt Context Assembly -->
+        <div class="step-card" id="p2-step4">
+          <span class="step-badge">STEP 4</span>
+          <div class="step-header">
+            <div class="step-title">
+              <h3>LLM Prompt Context Assembly</h3>
+              <a href="file:///d:/anvizent-datapipeline-nlp-poc/ai_dw_nlp_poc/src/phase2_retrieval/context_builder/builder.py" class="step-file">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
+                src/phase2_retrieval/context_builder/builder.py
+              </a>
+            </div>
+          </div>
+
+          <div class="step-meta">
+            <div class="meta-item">
+              <span class="meta-label">Primary Method</span>
+              <span class="meta-value"><code>ContextBuilder.build_context(schemas, rules)</code></span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Input Arrays</span>
+              <span class="meta-value input-color">Schema list + retrieved RAG rule list</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Output Structure</span>
+              <span class="meta-value output-color">Context dictionary (JSON/text format)</span>
+            </div>
+          </div>
+
+          <p class="step-description">
+            Consolidates the output of Step 2 (exact relational database schemas) and Step 3 (semantic business rules retrieved from ChromaDB). The <code>ContextBuilder</code> groups, formats, and structures these elements into a prompt payload, providing the downstream LLM with all context needed to generate syntactically correct SQL.
+          </p>
+
+          <div class="detail-tabs">
+            <button class="detail-tab-btn active" onclick="switchDetailTab(this, 'p2s4-py')">Python Source</button>
+            <button class="detail-tab-btn" onclick="switchDetailTab(this, 'p2s4-java')">Java Mapping (Prompt Templates)</button>
+          </div>
+
+          <!-- Python Tab -->
+          <div class="tab-content active" id="p2s4-py">
+            <div class="code-wrapper">
+              <div class="code-header">
+                <span>builder.py (Context Formatting)</span>
+                <button class="code-copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code><span class="c-kw">class</span> <span class="c-cl">ContextBuilder</span>:
+    <span class="c-kw">def</span> <span class="c-fn">build_context</span>(self, lookup_results, rag_results):
+        schema_text = <span class="c-str">"\n"</span>.<span class="c-fn">join</span>([f<span class="c-str">"Table: {r[0]}, Description: {r[1]}"</span> <span class="c-kw">for</span> r <span class="c-kw">in</span> lookup_results])
+        rules_text = <span class="c-str">"\n"</span>.<span class="c-fn">join</span>([f<span class="c-str">"- {item['chunk']}"</span> <span class="c-kw">for</span> item <span class="c-kw">in</span> rag_results])
+        
+        <span class="c-kw">return</span> {
+            <span class="c-str">"schema_context"</span>: schema_text,
+            <span class="c-str">"business_rules"</span>: rules_text,
+            <span class="c-str">"formatted_prompt"</span>: f<span class="c-str">"SCHEMAS:\n{schema_text}\n\nRULES:\n{rules_text}"</span>
+        }</code></pre>
+            </div>
+          </div>
+
+          <!-- Java Tab -->
+          <div class="tab-content" id="p2s4-java">
+            <div class="java-mapping-card">
+              <div class="java-header">
+                <span class="java-logo">☕</span>
+                <span class="java-title">Java Prompt Construction</span>
+              </div>
+              <p class="java-text">
+                Templating and formatting context inside JVM:
+              </p>
+              <ul class="java-mapping-list">
+                <li><strong>LangChain4j PromptTemplate:</strong> Define reusable prompts using structured files or String declarations. E.g., <code>PromptTemplate.from("SCHEMAS:\n{{schemas}}\n\nRULES:\n{{rules}}")</code>.</li>
+                <li><strong>Binding Data:</strong> Map values dynamically by passing a Java <code>Map&lt;String, Object&gt;</code> structure directly to the <code>template.apply(variables)</code> execution helper.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- P2 Step 5: SQL Query Generation -->
+        <div class="step-card" id="p2-step5">
+          <span class="step-badge">STEP 5</span>
+          <div class="step-header">
+            <div class="step-title">
+              <h3>SQL Query Generation</h3>
+              <a href="file:///d:/anvizent-datapipeline-nlp-poc/ai_dw_nlp_poc/src/phase2_retrieval/sql_generator/generator.py" class="step-file">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
+                src/phase2_retrieval/sql_generator/generator.py
+              </a>
+            </div>
+          </div>
+
+          <div class="step-meta">
+            <div class="meta-item">
+              <span class="meta-label">Primary Method</span>
+              <span class="meta-value"><code>SQLGenerator.generate(context, parsed, query)</code></span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Logic Model</span>
+              <span class="meta-value">Rule-based query generation & LLM simulation</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Output SQL</span>
+              <span class="meta-value output-color">Standard SQL Query String</span>
+            </div>
+          </div>
+
+          <p class="step-description">
+            Processes the compiled prompt context to generate the executable SQL query. For the local offline POC environment, the <code>SQLGenerator</code> uses a deterministic template-matching strategy that maps the parsed intent, detected entities, and join columns into standard ANSI SQL.
+          </p>
+
+          <div class="detail-tabs">
+            <button class="detail-tab-btn active" onclick="switchDetailTab(this, 'p2s5-py')">Python Source</button>
+            <button class="detail-tab-btn" onclick="switchDetailTab(this, 'p2s5-java')">Java Mapping (LLM Chat Integration)</button>
+          </div>
+
+          <!-- Python Tab -->
+          <div class="tab-content active" id="p2s5-py">
+            <div class="code-wrapper">
+              <div class="code-header">
+                <span>generator.py (SQL Blueprint Mapping)</span>
+                <button class="code-copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code><span class="c-kw">class</span> <span class="c-cl">SQLGenerator</span>:
+    <span class="c-kw">def</span> <span class="c-fn">generate</span>(self, context, extracted_data, query):
+        <span class="c-com"># Simple matching logic representing the dynamic generation step</span>
+        intent = extracted_data.get(<span class="c-str">"intent"</span>, <span class="c-str">"select"</span>)
+        entities = extracted_data.get(<span class="c-str">"entities"</span>, [])
+        
+        <span class="c-kw">if</span> <span class="c-str">"revenue"</span> <span class="c-kw">in</span> entities:
+            sql = <span class="c-str">"SELECT SUM(s.quantity * s.unit_price) AS revenue FROM sales s"</span>
+            <span class="c-com"># Add join paths dynamically if customers metadata matches</span>
+            <span class="c-kw">if</span> <span class="c-str">"customer"</span> <span class="c-kw">in</span> entities:
+                sql += <span class="c-str">" JOIN customers c ON s.customer_id = c.customer_id"</span>
+            <span class="c-com"># Add grouping clauses based on aggregations</span>
+            <span class="c-kw">if</span> <span class="c-str">"monthly"</span> <span class="c-kw">in</span> extracted_data[<span class="c-str">"aggregations"</span>]:
+                sql += <span class="c-str">" GROUP BY DATE_TRUNC('month', s.sale_date)"</span>
+            <span class="c-kw">return</span> sql
+        <span class="c-kw">return</span> <span class="c-str">"SELECT * FROM sales LIMIT 10"</span></code></pre>
+            </div>
+          </div>
+
+          <!-- Java Tab -->
+          <div class="tab-content" id="p2s5-java">
+            <div class="java-mapping-card">
+              <div class="java-header">
+                <span class="java-logo">☕</span>
+                <span class="java-title">Java Production LLM Calls</span>
+              </div>
+              <p class="java-text">
+                To substitute the simulated SQL generator with a live LLM endpoint:
+              </p>
+              <ul class="java-mapping-list">
+                <li><strong>LangChain4j ChatLanguageModel:</strong> Instantiate a client interface (e.g. <code>OpenAiChatModel</code> or <code>GeminiChatModel</code>).</li>
+                <li><strong>Structured Outputs:</strong> Bind the response payload to a Java 16 **Record** class structure (representing the generated SQL string and confidence level) using the <code>AiServices</code> tool mapper.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- P2 Step 6: Confidence Scoring & Clarification Gate -->
+        <div class="step-card" id="p2-step6">
+          <span class="step-badge">STEP 6</span>
+          <div class="step-header">
+            <div class="step-title">
+              <h3>Confidence Scoring & Clarification Gate</h3>
+              <a href="file:///d:/anvizent-datapipeline-nlp-poc/ai_dw_nlp_poc/src/phase2_retrieval/confidence/scorer.py" class="step-file">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline>
+                src/phase2_retrieval/confidence/scorer.py
+              </a>
+            </div>
+          </div>
+
+          <div class="step-meta">
+            <div class="meta-item">
+              <span class="meta-label">Primary Classes</span>
+              <span class="meta-value"><code>ConfidenceScorer</code> & <code>ClarificationEngine</code></span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Threshold Limit</span>
+              <span class="meta-value"><code>score &gt;= 0.70</code> (Pass Gate)</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Response Action</span>
+              <span class="meta-value output-color">Run Query or Prompt User for Clarification</span>
+            </div>
+          </div>
+
+          <p class="step-description">
+            Acts as the quality gatekeeper of the pipeline. The <code>ConfidenceScorer</code> calculates a numerical score (0.0 to 1.0) based on: matching schema keys, table matches, and vector distance values. If the score falls below a threshold (e.g. 0.7), the <code>ClarificationEngine</code> intercepts the flow to prompt the user for clarification (simulating conversational disambiguation).
+          </p>
+
+          <div class="detail-tabs">
+            <button class="detail-tab-btn active" onclick="switchDetailTab(this, 'p2s6-py')">Python Source</button>
+            <button class="detail-tab-btn" onclick="switchDetailTab(this, 'p2s6-java')">Java Mapping (Gatekeeper Pattern)</button>
+          </div>
+
+          <!-- Python Tab -->
+          <div class="tab-content active" id="p2s6-py">
+            <div class="code-wrapper">
+              <div class="code-header">
+                <span>scorer.py (Evaluation Framework)</span>
+                <button class="code-copy-btn" onclick="copyCode(this)">Copy</button>
+              </div>
+              <pre><code><span class="c-kw">class</span> <span class="c-cl">ConfidenceScorer</span>:
+    <span class="c-kw">def</span> <span class="c-fn">calculate_score</span>(self, context, extracted_data, rag_results):
+        score = <span class="c-num">0.5</span>  <span class="c-com"># baseline</span>
+        <span class="c-com"># Boost if schema lookup successfully matched tables</span>
+        <span class="c-kw">if</span> context.get(<span class="c-str">"schema_context"</span>):
+            score += <span class="c-num">0.3</span>
+        <span class="c-com"># Boost based on high semantic match coefficients</span>
+        <span class="c-kw">if</span> rag_results <span class="c-kw">and</span> rag_results[<span class="c-num">0</span>][<span class="c-str">"final_hybrid_score"</span>] &gt; <span class="c-num">0.6</span>:
+            score += <span class="c-num">0.2</span>
+        <span class="c-kw">return</span> <span class="c-fn">min</span>(<span class="c-num">1.0</span>, score)
+
+<span class="c-kw">class</span> <span class="c-cl">ClarificationEngine</span>:
+    <span class="c-kw">def</span> <span class="c-fn">check_needs_clarification</span>(self, score, extracted, context):
+        <span class="c-kw">if</span> score &lt; <span class="c-num">0.7</span>:
+            <span class="c-fn">print</span>(<span class="c-str">"![ALERT] Low Confidence score. Triggering clarification questions..."</span>)
+            <span class="c-com"># Generate options dynamically based on available entities</span>
+            <span class="c-kw">return</span> <span class="c-kw">True</span>
+        <span class="c-kw">return</span> <span class="c-kw">False</span></code></pre>
+            </div>
+          </div>
+
+          <!-- Java Tab -->
+          <div class="tab-content" id="p2s6-java">
+            <div class="java-mapping-card">
+              <div class="java-header">
+                <span class="java-logo">☕</span>
+                <span class="java-title">Java Interceptor Pattern</span>
+              </div>
+              <p class="java-text">
+                Implementing the scoring validator and fallback routing in Java:
+              </p>
+              <ul class="java-mapping-list">
+                <li><strong>Interceptor / Validator:</strong> Design a Spring Boot component implementing an <strong>Adapter/Interceptor pattern</strong>. It intercepts the pipeline return object before execution.</li>
+                <li><strong>Dynamic Routing:</strong> If the model's confidence field is insufficient, throw a custom checked exception (e.g. <code>LowConfidenceException</code>). This is caught by your REST controller to return a `202 Accepted` status with an array of clarifying UI checkboxes.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Page Footer -->
+  <footer>
+    <p>NLP Semantic Data Pipeline Reference Manual | Workspace: d:\anvizent-datapipeline-nlp-poc\ai_dw_nlp_poc</p>
+  </footer>
+
+  <!-- Page Logic -->
+  <script>
+    function switchPhase(phaseNum) {
+      // Toggle button active status
+      const btn1 = document.getElementById('btn-phase1');
+      const btn2 = document.getElementById('btn-phase2');
+      const side1 = document.getElementById('sidebar-phase1-nav');
+      const side2 = document.getElementById('sidebar-phase2-nav');
+      const content1 = document.getElementById('phase1-content');
+      const content2 = document.getElementById('phase2-content');
+
+      if (phaseNum === 1) {
+        btn1.classList.add('active');
+        btn2.classList.remove('active');
+        side1.style.display = 'block';
+        side2.style.display = 'none';
+        content1.classList.add('active');
+        content2.classList.remove('active');
+        // Activate first step link in sidebar
+        activateSidebarLink('link-p1-step1');
+      } else {
+        btn2.classList.add('active');
+        btn1.classList.remove('active');
+        side2.style.display = 'block';
+        side1.style.display = 'none';
+        content2.classList.add('active');
+        content1.classList.remove('active');
+        // Activate first step link in sidebar
+        activateSidebarLink('link-p2-step1');
+      }
+    }
+
+    function activateSidebarLink(id) {
+      document.querySelectorAll('.sidebar-link').forEach(link => {
+        link.classList.remove('active');
+      });
+      document.getElementById(id).classList.add('active');
+    }
+
+    function switchDetailTab(btn, tabId) {
+      // Get all tab buttons in the parent context
+      const tabContainer = btn.parentElement;
+      tabContainer.querySelectorAll('.detail-tab-btn').forEach(b => {
+        b.classList.remove('active');
+      });
+      btn.classList.add('active');
+
+      // Hide all related tab contents
+      const cardContainer = tabContainer.parentElement;
+      cardContainer.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    function scrollToElement(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+        // Find corresponding link
+        const stepNum = id.split('-')[1]; // e.g. "step1"
+        const phaseNum = id.startsWith('p1') ? 'p1' : 'p2';
+        activateSidebarLink(`link-${phaseNum}-${stepNum}`);
+      }
+    }
+
+    // Scroll Spy behavior to update active sidebar link on scroll
+    window.addEventListener('scroll', () => {
+      const activePhase = document.getElementById('btn-phase1').classList.contains('active') ? 'p1' : 'p2';
+      const steps = activePhase === 'p1' ? ['step1', 'step2', 'step3'] : ['step1', 'step2', 'step3', 'step4', 'step5', 'step6'];
+      
+      let currentActive = '';
+      for (const step of steps) {
+        const el = document.getElementById(`${activePhase}-${step}`);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= 120 && rect.bottom >= 120) {
+            currentActive = `link-${activePhase}-${step}`;
+            break;
+          }
+        }
+      }
+      if (currentActive) {
+        activateSidebarLink(currentActive);
+      }
+    });
+
+    function copyCode(btn) {
+      const codeEl = btn.parentElement.nextElementSibling.querySelector('code');
+      navigator.clipboard.writeText(codeEl.innerText).then(() => {
+        const originalText = btn.innerText;
+        btn.innerText = 'Copied!';
+        btn.style.borderColor = 'var(--accent-green)';
+        btn.style.color = 'var(--accent-green)';
+        setTimeout(() => {
+          btn.innerText = originalText;
+          btn.style.borderColor = '';
+          btn.style.color = '';
+        }, 1500);
+      });
+    }
+  </script>
+</body>
+</html>

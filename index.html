@@ -92,17 +92,23 @@
     /* Portal Grid */
     .portal-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 1.5rem;
     }
 
-    @media (max-width: 1200px) {
+    @media (max-width: 1400px) {
+      .portal-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 968px) {
       .portal-grid {
         grid-template-columns: repeat(2, 1fr);
       }
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 576px) {
       .portal-grid {
         grid-template-columns: 1fr;
       }
@@ -349,6 +355,23 @@
         </div>
         <div class="portal-card-footer">
           Open Advanced RAG Guide &rarr;
+        </div>
+      </a>
+
+      <!-- Link to code_flow_guide.html -->
+      <a href="code_flow_guide.html" class="portal-card">
+        <div>
+          <div class="portal-card-header">
+            <span class="portal-card-icon">📖</span>
+            <span class="tag" style="background: rgba(248, 152, 32, 0.15); color: var(--secondary);">Codeflow Guide</span>
+          </div>
+          <div class="portal-card-title">Code Execution Flow</div>
+          <div class="portal-card-desc">
+            Explore step-by-step logic tracing of Phase 1 Ingestion and Phase 2 Retrieval. Read detailed data formats and compare side-by-side Java translations.
+          </div>
+        </div>
+        <div class="portal-card-footer">
+          Open Code Flow Guide &rarr;
         </div>
       </a>
 
